@@ -40,8 +40,6 @@ button:disabled{opacity:.5}:focus-visible{outline:2px solid var(--gold);outline-
 <label>Achat<select data-k="mode"><option value="i">Instantané</option><option value="o">Ordre d'achat</option></select></label>
 <label>Marge nette min. (%)<input type="number" data-k="mg" inputmode="decimal"></label>
 <label>Budget max. par objet (M)<input type="number" data-k="bud" step="0.1" inputmode="decimal"></label>
-<label>Volume min. (ventes/jour)<input type="number" data-k="vol" inputmode="numeric"></label>
-<label>Données max. (minutes)<input type="number" data-k="age" inputmode="numeric"></label>
 <label>Trier par<select data-k="sort"><option value="pf">Profit</option><option value="pv">Profit × volume</option><option value="m">Marge</option><option value="vol">Volume</option><option value="a">Fraîcheur</option><option value="cost">Prix d'achat</option></select></label>
 <label>Nombre affiché<input type="number" data-k="top" inputmode="numeric"></label>
 <label class="row"><input type="checkbox" data-k="prem">Premium (taxe 4 %)</label>
@@ -86,9 +84,9 @@ button:disabled{opacity:.5}:focus-visible{outline:2px solid var(--gold);outline-
 <nav><button data-t="f" class="on">Flips</button><button data-t="c">Craft</button><button data-t="k">Capital</button><button data-t="j">Journal</button></nav>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const API="https://europe.albion-online-data.com/api/v2/stats/",CITIES=["Caerleon","Bridgewatch","Fort Sterling","Lymhurst","Martlock","Thetford","Brecilien"],BM="Marché noir";
+const API="https://europe.albion-online-data.com/api/v2/stats/",CITIES=["Caerleon","Bridgewatch","Fort Sterling","Lymhurst","Martlock","Thetford","Brecilien"],BM="Black Market",dl=n=>n===BM?"Marché noir":n;
 const QN=["","Normal","Bon","Remarquable","Excellent","Chef-d'œuvre"],TC={4:"#5b8fd0",5:"#d0605b",6:"#e48f3f",7:"#e6c443",8:"#f1efe6"};
-const fmt=n=>Math.round(n).toLocaleString("fr-FR"),fk=n=>{const a=Math.abs(n);return a>=1e6?(n/1e6).toFixed(2)+"M":a>=1e4?(n/1e3).toFixed(1)+"k":fmt(n)};
+const MAXAGE=10080,fmt=n=>Math.round(n).toLocaleString("fr-FR"),fk=n=>{const a=Math.abs(n);return a>=1e6?(n/1e6).toFixed(2)+"M":a>=1e4?(n/1e3).toFixed(1)+"k":fmt(n)};
 const age=d=>(Date.now()-new Date(d.endsWith("Z")?d:d+"Z"))/6e4;
 const SL={ARMOR:"Armure",HEAD:"Casque",SHOES:"Bottes"},MT={PLATE:"Plaque",LEATHER:"Cuir",CLOTH:"Tissu"},SN={PLATE:["soldat","chevalier","gardien"],LEATHER:["mercenaire","chasseur","assassin"],CLOTH:["érudit","clerc","mage"]};
 const W=[["MAIN_FIRESTAFF","Bâtons","Bâton de feu"],["MAIN_FROSTSTAFF","Bâtons","Bâton de givre"],["MAIN_ARCANESTAFF","Bâtons","Bâton arcanique"],["MAIN_HOLYSTAFF","Bâtons","Bâton sacré"],["MAIN_NATURESTAFF","Bâtons","Bâton de nature"],["MAIN_CURSEDSTAFF","Bâtons","Bâton maudit"],["MAIN_SWORD","Épées","Épée"],["MAIN_AXE","Haches","Hache"],["MAIN_MACE","Masses","Masse"],["MAIN_SPEAR","Lances","Lance"],["MAIN_DAGGER","Dagues","Dague"],["2H_BOW","Arcs","Arc"],["2H_CROSSBOW","Arbalètes","Arbalète"],["2H_CLAYMORE","2 mains","Espadon"],["2H_HALBERD","2 mains","Hallebarde"],["OFF_SHIELD","Main gauche","Bouclier"],["OFF_BOOK","Main gauche","Livre"],["BAG","Sacs","Sac"]];
@@ -118,7 +116,7 @@ const hv=(id,q,c)=>HIST[`${id}#${q}|${c}`];
 let ROWS=[],LAST=0;
 const sel=()=>{const q=S.q.trim().toLowerCase();return Object.entries(INFO).filter(([b,i])=>(!S.grp.length||S.grp.includes(i.g))&&(!i.s||!S.slot.length||S.slot.includes(i.s))&&(!q||i.l.toLowerCase().includes(q)||i.g.toLowerCase().includes(q)))};
 function compute(rows,pre){const by={};for(const r of rows)(by[r.item_id+"#"+r.quality]??={})[r.city]=r;
- const tax=S.prem?.04:.08,ord=S.mode==="o",cs=S.onlyc?["Caerleon"]:S.cities,ok=(p,d)=>p>0&&age(d)<=S.age,out=[];
+ const tax=S.prem?.04:.08,ord=S.mode==="o",cs=S.onlyc?["Caerleon"]:S.cities,ok=(p,d)=>p>0&&age(d)<=MAXAGE,out=[];
  for(const k in by){if(S.bl.includes(k)||(S.favo&&!S.fav.includes(k)))continue;const[id,q]=k.split("#"),ds=[];
   if(S.dest==="b"){const m=by[k][BM];if(m&&ok(m.buy_price_max,m.buy_price_max_date))ds.push({n:BM,rev:m.buy_price_max*(1-tax),a:age(m.buy_price_max_date)})}
   else for(const d of CITIES){const m=by[k][d];if(m&&ok(m.sell_price_min,m.sell_price_min_date))ds.push({n:d,p:m.sell_price_min,rev:(m.sell_price_min-1)*(1-tax-.025),a:age(m.sell_price_min_date)})}
@@ -128,14 +126,14 @@ function compute(rows,pre){const by={};for(const r of rows)(by[r.item_id+"#"+r.q
    for(const t of ds){if(t.n===c)continue;const pf=t.rev-cost,m=pf/cost;if(pf<=0||m<S.mg/100)continue;
     const hb=hv(id,q,c),hd=t.n===BM?null:hv(id,q,t.n),vol=hb?(hd?Math.min(hb.v,hd.v):hb.v):null;
     const sus=m>1.5?"marge irréaliste":hb&&hb.p&&cost<.7*hb.p?"achat anormalement bas":hd&&hd.p&&t.p>1.3*hd.p?"vente gonflée":"";
-    if(!pre&&((S.vol>0&&(vol==null||vol<S.vol))||(S.nosus&&sus)))continue;
+    if(!pre&&S.nosus&&sus)continue;
     if(!best||pf>best.pf)best={k,id,q:+q,c,dn:t.n,cost,rev:t.rev,pf,m,vol,sus,a:Math.max(age(dt),t.a)}}}
   if(best)out.push(best)}
  const s=S.sort,v=r=>s==="pv"?r.pf*(r.vol||0):s==="vol"?r.vol||0:r[s];return out.sort((x,y)=>s==="a"||s==="cost"?x[s]-y[s]:v(y)-v(x))}
-function show(){const res=compute(ROWS);$("#st").className="st";$("#st").textContent=(res.length?`${res.length} flips, ${Math.min(S.top,res.length)} affichés.`:"Aucun flip avec ces filtres. Baisse la marge, élargis l'âge des données ou les villes.")+(LAST?` Scan d'il y a ${Math.round((Date.now()-LAST)/6e4)} min.`:"");
+function show(){const res=compute(ROWS);$("#st").className="st";$("#st").textContent=(res.length?`${res.length} flips, ${Math.min(S.top,res.length)} affichés.`:"Aucun flip avec ces filtres. Baisse la marge ou élargis les villes d'achat.")+(LAST?` Scan d'il y a ${Math.round((Date.now()-LAST)/6e4)} min.`:"");
  let rem=S.cap*1e6*S.pct/100,tot=0,pr=0;const L=[];for(const r of res){const q=Math.min(S.qty,Math.floor(rem/r.cost));if(q<1)continue;rem-=q*r.cost;tot+=q*r.cost;pr+=q*r.pf;L.push(`${q}× ${nice(r.id)} : achat ${r.c} (${fmt(q*r.cost)})`)}
  $("#plan").innerHTML=L.length?`<div class="box"><b>Plan de chargement</b><br>Budget ${fmt(S.cap*1e6*S.pct/100)}, dépensé ${fmt(tot)}, profit attendu +${fmt(pr)}<br>${L.join("<br>")}</div>`:"";
- $("#out").innerHTML=res.slice(0,S.top).map(r=>card(r.id,r.q,nice(r.id),r.pf,(r.c==="Caerleon"&&r.dn===BM?tg("Caerleon : 0 trajet","w"):tg(r.c))+tg((r.m*100).toFixed(0)+" % de marge","g")+(r.q>1?tg(QN[r.q]):"")+(r.vol!=null?tg(Math.round(r.vol)+" ventes/jour"):tg("volume inconnu"))+tg("il y a "+Math.round(r.a)+" min")+(r.sus?tg("⚠ "+r.sus,"b"):""),`Achat ${r.c} : ${fmt(r.cost)}`,`Vente ${r.dn} : ${fmt(r.rev)} net`,`<button class="sm" data-a="f" data-id="${r.k}">${S.fav.includes(r.k)?"★ Favori":"☆ Favori"}</button><button class="sm" data-a="b" data-id="${r.k}">Masquer</button>`)).join("");
+ $("#out").innerHTML=res.slice(0,S.top).map(r=>card(r.id,r.q,nice(r.id),r.pf,(r.c==="Caerleon"&&r.dn===BM?tg("Caerleon : 0 trajet","w"):tg(r.c))+tg((r.m*100).toFixed(0)+" % de marge","g")+(r.q>1?tg(QN[r.q]):"")+(r.vol!=null?tg(Math.round(r.vol)+" ventes/jour"):tg("volume inconnu"))+tg("il y a "+Math.round(r.a)+" min")+(r.sus?tg("⚠ "+r.sus,"b"):""),`Achat ${r.c} : ${fmt(r.cost)}`,`Vente ${dl(r.dn)} : ${fmt(r.rev)} net`,`<button class="sm" data-a="f" data-id="${r.k}">${S.fav.includes(r.k)?"★ Favori":"☆ Favori"}</button><button class="sm" data-a="b" data-id="${r.k}">Masquer</button>`)).join("");
  $("#unbl").hidden=!S.bl.length;$("#unbl").textContent=`Réafficher les masqués (${S.bl.length})`}
 $("#out").onclick=e=>{const a=e.target.dataset.a,id=e.target.dataset.id;if(!a)return;const k=a==="f"?"fav":"bl";S[k]=S[k].includes(id)?S[k].filter(x=>x!==id):[...S[k],id];save();show()};
 $("#unbl").onclick=()=>{S.bl=[];save();show()};
@@ -151,14 +149,14 @@ $("#cgo").onclick=async()=>{const b=$("#cgo"),st=$("#cst");b.disabled=true;const
  if(A)for(let t=4;t<=8;t++){for(const m in REF)ids.push(`T${t}_${REF[m]}`);for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++)ids.push(`T${t}_${s}_${m}_SET${n}`)}
  else for(const [r,f] of RES)for(let t=2;t<=8;t++)ids.push(`T${t}_${r}`,`T${t}_${f}`);
  let rows;try{rows=await pull(ids,true,n=>{st.className="st";st.textContent=`Scan ${n} / ${ids.length}…`},"1")}catch(e){st.className="st err";st.textContent=FAIL;b.disabled=false;return}
- const by={};for(const r of rows)(by[r.item_id]??={})[r.city]=r;const rr=+S.rr/100,tax=S.prem?.04:.08,fr=r=>r.sell_price_min>0&&age(r.sell_price_min_date)<=S.age;
+ const by={};for(const r of rows)(by[r.item_id]??={})[r.city]=r;const rr=+S.rr/100,tax=S.prem?.04:.08,fr=r=>r.sell_price_min>0&&age(r.sell_price_min_date)<=MAXAGE;
  const lo=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];if(c!==BM&&fr(r)&&(!b||r.sell_price_min<b.p))b={p:r.sell_price_min,c}}return b};
- const so=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];let v=0;if(c===BM)v=r.buy_price_max>0&&age(r.buy_price_max_date)<=S.age?r.buy_price_max*(1-tax):0;else v=fr(r)?(r.sell_price_min-1)*(1-tax-.025):0;if(v>0&&(!b||v>b.v))b={v,c}}return b};
+ const so=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];let v=0;if(c===BM)v=r.buy_price_max>0&&age(r.buy_price_max_date)<=MAXAGE?r.buy_price_max*(1-tax):0;else v=fr(r)?(r.sell_price_min-1)*(1-tax-.025):0;if(v>0&&(!b||v>b.v))b={v,c}}return b};
  const out=[];
  if(A){for(let t=4;t<=8;t++)for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++){const id=`T${t}_${s}_${m}_SET${n}`,M=lo(`T${t}_${REF[m]}`),o=so(id);if(!M||!o)continue;const cost=QA[s]*M.p*(1-rr)+ +S.fee,pf=o.v-cost;out.push({id,t:nice(id),M,o,q:QA[s],cost,pf,m:pf/cost,mn:{METALBAR:"barres",LEATHER:"cuir",CLOTH:"tissu"}[REF[m]]})}}
  else for(const [r,f,n] of RES)for(let t=3;t<=8;t++){const a=lo(`T${t}_${r}`),p=lo(`T${t-1}_${f}`),o=so(`T${t}_${f}`);if(!a||!p||!o)continue;const cost=(QR[t]*a.p+p.p)*(1-rr)+ +S.fee,pf=o.v-cost;out.push({id:`T${t}_${f}`,t:`T${t} ${n}`,M:a,o,q:QR[t],cost,pf,m:pf/cost,mn:r.toLowerCase(),p})}
- out.sort((x,y)=>y.pf-x.pf);st.className="st";st.textContent=out.length?`${out.length} résultats (profit par objet fabriqué).`:"Pas assez de données fraîches. Augmente « Données max. » dans l'onglet Flips.";
- $("#cout").innerHTML=out.slice(0,40).map(o=>card(o.id,1,o.t,o.pf,tg((o.m*100).toFixed(0)+" % de marge","g")+tg("Vente "+o.o.c),`Matières ${fmt(o.cost)} (${o.q}× ${o.mn} à ${o.M.c}${o.p?", 1× palier précédent à "+o.p.c:""})`,`Revente nette ${fmt(o.o.v)}`)).join("");b.disabled=false};
+ out.sort((x,y)=>y.pf-x.pf);st.className="st";st.textContent=out.length?`${out.length} résultats (profit par objet fabriqué).`:"Pas assez de données récentes pour ces objets.";
+ $("#cout").innerHTML=out.slice(0,40).map(o=>card(o.id,1,o.t,o.pf,tg((o.m*100).toFixed(0)+" % de marge","g")+tg("Vente "+dl(o.o.c)),`Matières ${fmt(o.cost)} (${o.q}× ${o.mn} à ${o.M.c}${o.p?", 1× palier précédent à "+o.p.c:""})`,`Revente nette ${fmt(o.o.v)}`)).join("");b.disabled=false};
 /* CAPITAL */
 let CAP=ld("flc",[]);
 function capDraw(){const g=S.goal*1e6,L=CAP.at(-1),v=L?L.v:0;let h=`<div class="bar"><i style="width:${Math.min(100,v/g*100)}%"></i></div><p class="d">${fmt(v)} / ${fmt(g)} (${(v/g*100).toFixed(1)} %)</p>`;
