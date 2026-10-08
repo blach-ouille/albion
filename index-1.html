@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flipper Albion</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><meta name="theme-color" content="#0e1a2b">
+<style>
+:root{--bg:#0e1a2b;--panel:#16263d;--line:#2a3f5c;--ink:#e9e6da;--mute:#8fa3bd;--gain:#8fe0c0;--loss:#e08a72;--gold:#e2b857;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 Georgia,"Times New Roman",serif;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom))}
+h1{font-size:1.5rem;margin:.2rem 0 .1rem;letter-spacing:.01em}
+.sub{color:var(--mute);font-size:.85rem;margin:0 0 .9rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--mute)}
+label.row{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:.9rem}
+input[type=number],select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;width:100%}
+.full{grid-column:1/-1}.chk{display:flex;gap:12px;flex-wrap:wrap}
+button{background:var(--gold);color:#241a05;border:0;border-radius:8px;padding:13px;font:700 1rem Georgia,serif;width:100%;margin-top:12px}
+button:disabled{opacity:.5}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#st{color:var(--mute);font-size:.85rem;margin:10px 2px;min-height:1.2em}#st.err{color:var(--loss)}
+.it{border-top:1px solid var(--line);padding:11px 2px;display:grid;grid-template-columns:1fr auto;gap:2px 10px}
+.nm{font-weight:700}.pf{color:var(--gain);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.d{color:var(--mute);font-size:.82rem;font-variant-numeric:tabular-nums}.d.r{text-align:right}.z{color:var(--gold)}
+</style></head><body>
+<h1>Flipper Albion</h1>
+<p class="sub">Achat en ville, revente au Marché noir. Serveur Europe, données AODP.</p>
+<div class="panel">
+<label class="row full"><input type="checkbox" id="prem" checked> Premium actif (taxe 4 % au lieu de 8 %)</label>
+<label>Mode d'achat<select id="mode"><option value="i">Achat instantané</option><option value="o">Ordre d'achat</option></select></label>
+<label>Marge nette min. (%)<input type="number" id="mg" value="10" min="0" inputmode="decimal"></label>
+<label>Données max. (minutes)<input type="number" id="age" value="180" min="5" inputmode="numeric"></label>
+<label>Budget max. par objet (M)<input type="number" id="bud" value="5" min="0.1" step="0.1" inputmode="decimal"></label>
+<div class="full chk"><span class="d">Tiers :</span>
+<label class="row"><input type="checkbox" class="t" value="4" checked>T4</label>
+<label class="row"><input type="checkbox" class="t" value="5" checked>T5</label>
+<label class="row"><input type="checkbox" class="t" value="6">T6</label>
+<span class="d">Enchant. :</span>
+<label class="row"><input type="checkbox" class="e" value="0" checked>.0</label>
+<label class="row"><input type="checkbox" class="e" value="1">.1</label></div>
+</div>
+<button id="go">Scanner le marché</button>
+<div id="st">Appuie sur Scanner. Vérifie toujours les prix en jeu avant d'acheter.</div>
+<div id="out"></div>
+<script>
+const $=s=>document.querySelector(s),API="https://europe.albion-online-data.com/api/v2/stats/prices/";
+const CITIES=["Caerleon","Bridgewatch","Fort Sterling","Lymhurst","Martlock","Thetford","Brecilien"];
+const BASES=["MAIN_FIRESTAFF","MAIN_FROSTSTAFF","MAIN_ARCANESTAFF","MAIN_HOLYSTAFF","MAIN_NATURESTAFF","MAIN_CURSEDSTAFF","MAIN_SWORD","MAIN_AXE","MAIN_MACE","MAIN_SPEAR","MAIN_DAGGER","2H_BOW","2H_CROSSBOW","2H_CLAYMORE","2H_HALBERD","OFF_SHIELD","OFF_BOOK","BAG"];
+for(const s of["ARMOR","HEAD","SHOES"])for(const m of["PLATE","LEATHER","CLOTH"])for(const n of[1,2,3])BASES.push(`${s}_${m}_SET${n}`);
+const age=d=>(Date.now()-new Date(d.endsWith("Z")?d:d+"Z"))/6e4;
+const fmt=n=>Math.round(n).toLocaleString("fr-FR");
+const nice=id=>id.replace(/^T(\d)_/,"T$1 ").replace(/_/g," ").replace("@"," .");
+const st=(t,e)=>{$("#st").textContent=t;$("#st").className=e?"err":""};
+try{const s=JSON.parse(localStorage.flp||"{}");for(const k in s){const el=$("#"+k);if(el)el.type==="checkbox"?el.checked=s[k]:el.value=s[k]}}catch{}
+async function chunk(list){
+ const u=`${API}${list.join(",")}.json?locations=${encodeURIComponent([...CITIES,"Black Market"].join(","))}&qualities=1`;
+ const r=await fetch(u);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
+$("#go").onclick=async()=>{
+ const b=$("#go");b.disabled=true;$("#out").innerHTML="";
+ try{localStorage.flp=JSON.stringify({prem:$("#prem").checked,mode:$("#mode").value,mg:$("#mg").value,age:$("#age").value,bud:$("#bud").value})}catch{}
+ const T=[...document.querySelectorAll(".t:checked")].map(x=>x.value),E=[...document.querySelectorAll(".e:checked")].map(x=>x.value);
+ const ids=[];for(const t of T)for(const bs of BASES)for(const e of E)ids.push(`T${t}_${bs}${e==="1"?"@1":""}`);
+ if(!ids.length){st("Choisis au moins un tier et un enchantement.",1);b.disabled=false;return}
+ const rows=[];
+ try{for(let i=0;i<ids.length;i+=40){st(`Scan ${Math.min(i+40,ids.length)} / ${ids.length} objets…`);rows.push(...await chunk(ids.slice(i,i+40)))}}
+ catch(e){st("Échec de la requête ("+e.message+"). Si c'est « Failed to fetch », le navigateur bloque l'API : utilise un relais CORS ou réessaie plus tard.",1);b.disabled=false;return}
+ const tax=$("#prem").checked?.04:.08,ord=$("#mode").value==="o",mg=+$("#mg").value/100,mx=+$("#age").value,bud=+$("#bud").value*1e6;
+ const by={};for(const r of rows)(by[r.item_id]??={})[r.city]=r;
+ const res=[];
+ for(const id in by){const bm=by[id]["Black Market"];if(!bm||bm.buy_price_max<=0||age(bm.buy_price_max_date)>mx)continue;
+  let best=null;
+  for(const c of CITIES){const r=by[id][c];if(!r)continue;
+   const p=ord?r.buy_price_max:r.sell_price_min,d=ord?r.buy_price_max_date:r.sell_price_min_date;
+   if(!(p>0)||age(d)>mx)continue;
+   const cost=ord?(p+1)*1.025:p,pf=bm.buy_price_max*(1-tax)-cost;
+   if(cost>bud||pf/cost<mg)continue;
+   if(!best||pf>best.pf)best={c,cost,pf,m:pf/cost,a:Math.max(age(d),age(bm.buy_price_max_date))}}
+  if(best)res.push({id,bm:bm.buy_price_max,...best})}
+ res.sort((a,b)=>b.pf-a.pf);
+ st(res.length?`${res.length} flips trouvés (top 40). Données du plus ancien prix affiché.`:"Aucun flip ne passe tes filtres. Baisse la marge ou élargis l'âge des données.");
+ $("#out").innerHTML=res.slice(0,40).map(r=>`<div class="it"><div class="nm">${nice(r.id)}</div><div class="pf">+${fmt(r.pf)}</div>
+ <div class="d">${r.c==="Caerleon"?'<span class="z">Caerleon : 0 trajet</span>':"Achat "+r.c} à ${fmt(r.cost)}</div><div class="d r">${(r.m*100).toFixed(1)} %</div>
+ <div class="d">Marché noir : ${fmt(r.bm)}</div><div class="d r">il y a ${Math.round(r.a)} min</div></div>`).join("");
+ b.disabled=false};
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script></body></html>
