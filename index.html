@@ -1,159 +1,177 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Flipper Albion</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><meta name="theme-color" content="#0e1a2b">
+<title>Flipper Albion</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><meta name="theme-color" content="#0b1523">
 <style>
-:root{--bg:#0e1a2b;--panel:#16263d;--line:#2a3f5c;--ink:#e9e6da;--mute:#8fa3bd;--gain:#8fe0c0;--loss:#e08a72;--gold:#e2b857;color-scheme:dark}
+:root{--bg:#0b1523;--s1:#13233a;--s2:#1c3250;--line:#27405f;--ink:#ecebe4;--mute:#8da2bd;--gain:#7fe3b8;--loss:#ef8f78;--gold:#e5b95a;color-scheme:dark}
 *{box-sizing:border-box}html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.4 Georgia,"Times New Roman",serif;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom))}
-h1{font-size:1.5rem;margin:.2rem 0 .1rem}.sub{color:var(--mute);font-size:.85rem;margin:0 0 .8rem}
-.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
-label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--mute)}
-label.row{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:.9rem}
-input[type=number],input[type=text],select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;width:100%}
-details{grid-column:1/-1;border-top:1px solid var(--line);padding-top:8px}summary{padding:4px 0}
+body{background:radial-gradient(120% 50% at 50% -8%,#18385c 0,var(--bg) 62%) fixed,var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px calc(82px + env(safe-area-inset-bottom))}
+h1{font:700 1.45rem Georgia,serif;margin:.2rem 0 .1rem}.sub{color:var(--mute);font-size:.82rem;margin:0 0 12px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(11,21,35,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:5}
+nav button{flex:1;margin:0 3px;padding:10px 4px;background:none;color:var(--mute);border:0;border-radius:10px;font:600 .82rem system-ui,sans-serif}
+nav button.on{background:var(--s2);color:var(--gold)}
+.panel{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--mute)}
+label.row{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:.88rem}
+input[type=number],input[type=text],select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;width:100%}
+details{grid-column:1/-1;border-top:1px solid var(--line);padding-top:8px}summary{padding:5px 0;font-weight:600}
 .in{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-top:8px}.full{grid-column:1/-1}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-button{background:var(--gold);color:#241a05;border:0;border-radius:8px;padding:13px;font:700 1rem Georgia,serif;width:100%;margin-top:12px}
-.tabs button,.chip,.sm{width:auto;margin:0;white-space:nowrap}
-.tabs button{padding:9px 12px;background:var(--panel);color:var(--mute);border:1px solid var(--line);font-size:.9rem}
-.tabs button.on{background:var(--gold);color:#241a05;border-color:var(--gold)}
-.chip{padding:6px 10px;border-radius:16px;background:var(--bg);color:var(--mute);border:1px solid var(--line);font:.82rem Georgia,serif}
-.chip.on{color:var(--ink);border-color:var(--gold);background:#22344f}
-.sm{padding:5px 10px;background:none;color:var(--mute);border:1px solid var(--line);font:.8rem Georgia,serif;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+button{font-family:inherit}
+.go{background:linear-gradient(180deg,#f0c76a,#d9a73f);color:#241a05;border:0;border-radius:12px;padding:14px;font:700 1rem system-ui,sans-serif;width:100%;margin-top:12px}
+.chip{padding:6px 11px;border-radius:16px;background:var(--bg);color:var(--mute);border:1px solid var(--line);font-size:.8rem}
+.chip.on{color:var(--ink);border-color:var(--gold);background:var(--s2)}
+.sm{padding:6px 11px;background:none;color:var(--mute);border:1px solid var(--line);border-radius:8px;font-size:.78rem;margin-top:4px}
 button:disabled{opacity:.5}:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.st{color:var(--mute);font-size:.85rem;margin:10px 2px;min-height:1.2em}.st.err{color:var(--loss)}
-.it{border-top:1px solid var(--line);padding:11px 2px;display:grid;grid-template-columns:1fr auto;gap:2px 10px}
-.nm{font-weight:700}.pf{color:var(--gain);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}.neg{color:var(--loss)}
-.d{color:var(--mute);font-size:.82rem;font-variant-numeric:tabular-nums}.d.r{text-align:right}.z{color:var(--gold)}.act{grid-column:1/-1;display:flex;gap:8px}
-.box{background:var(--panel);border:1px solid var(--gold);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:.88rem}
-.bar{height:10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--gain)}
+.st{color:var(--mute);font-size:.84rem;margin:10px 2px;min-height:1.2em}.st.err{color:var(--loss)}
+.c{display:grid;grid-template-columns:58px 1fr auto;gap:3px 12px;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.c>*{grid-column:2/4}.c>.ic{grid-column:1;grid-row:1/4;width:58px;height:58px;border-radius:12px;background:var(--s2);border:2px solid var(--tc,var(--line))}
+.c>.nm{grid-column:2;font-weight:700;align-self:center}.c>.pf{grid-column:3;color:var(--gain);font-weight:800;font-size:1.05rem;text-align:right;font-variant-numeric:tabular-nums}.c>.act{grid-column:1/4;display:flex;gap:8px}
+.neg{color:var(--loss)!important}.d{color:var(--mute);font-size:.8rem;font-variant-numeric:tabular-nums}
+.tgs{display:flex;flex-wrap:wrap;gap:5px}.tg{font-size:.7rem;padding:2px 8px;border-radius:10px;background:var(--s2);color:var(--mute)}
+.tg.w{background:var(--gold);color:#241a05;font-weight:700}.tg.g{color:var(--gain)}.tg.b{background:#5a2a24;color:#ffc9bb}
+.box{background:var(--s1);border:1px solid var(--gold);border-radius:14px;padding:11px 13px;margin:10px 0;font-size:.85rem}
+.bar{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:7px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gain),var(--gold))}
 </style></head><body>
 <h1>Flipper Albion</h1><p class="sub">Serveur Europe, données AODP. Vérifie toujours les prix en jeu.</p>
-<div class="tabs"><button data-t="f" class="on">Flips</button><button data-t="c">Craft</button><button data-t="k">Capital</button><button data-t="j">Journal</button></div>
 
 <section id="p-f"><div class="panel">
-<label>Destination<select data-k="dest"><option value="b">Marché noir</option><option value="v">Autre ville (ordre de vente)</option></select></label>
-<label>Mode d'achat<select data-k="mode"><option value="i">Instantané</option><option value="o">Ordre d'achat</option></select></label>
+<label>Vente<select data-k="dest"><option value="b">Marché noir</option><option value="v">Autre ville (ordre de vente)</option></select></label>
+<label>Achat<select data-k="mode"><option value="i">Instantané</option><option value="o">Ordre d'achat</option></select></label>
 <label>Marge nette min. (%)<input type="number" data-k="mg" inputmode="decimal"></label>
-<label>Profit min. par objet<input type="number" data-k="pf" inputmode="numeric"></label>
-<label>Prix d'achat min.<input type="number" data-k="minc" inputmode="numeric"></label>
 <label>Budget max. par objet (M)<input type="number" data-k="bud" step="0.1" inputmode="decimal"></label>
+<label>Volume min. (ventes/jour)<input type="number" data-k="vol" inputmode="numeric"></label>
 <label>Données max. (minutes)<input type="number" data-k="age" inputmode="numeric"></label>
+<label>Trier par<select data-k="sort"><option value="pf">Profit</option><option value="pv">Profit × volume</option><option value="m">Marge</option><option value="vol">Volume</option><option value="a">Fraîcheur</option><option value="cost">Prix d'achat</option></select></label>
 <label>Nombre affiché<input type="number" data-k="top" inputmode="numeric"></label>
-<label class="full">Trier par<select data-k="sort"><option value="pf">Profit</option><option value="m">Marge</option><option value="a">Données les plus récentes</option><option value="cost">Prix d'achat</option></select></label>
 <label class="row"><input type="checkbox" data-k="prem">Premium (taxe 4 %)</label>
-<label class="row"><input type="checkbox" data-k="onlyc">Achat à Caerleon seulement</label>
-<label class="row full"><input type="checkbox" data-k="favo">Favoris seulement</label>
+<label class="row"><input type="checkbox" data-k="nosus">Masquer les suspects</label>
+<label class="row"><input type="checkbox" data-k="onlyc">Caerleon seulement</label>
+<label class="row"><input type="checkbox" data-k="favo">Favoris seulement</label>
 <details><summary>Objets</summary><div class="in">
 <label class="full">Recherche<input type="text" data-k="q" placeholder="ex. feu, soldat, sac"></label>
 <div class="full">Types<div class="chips" data-c="grp"></div></div>
 <div class="full">Emplacement (armures)<div class="chips" data-c="slot"></div></div>
 <div class="full">Tiers<div class="chips" data-c="tiers"></div></div>
-<div class="full">Enchantements<div class="chips" data-c="ench"></div></div></div></details>
+<div class="full">Enchantements<div class="chips" data-c="ench"></div></div>
+<div class="full">Qualités<div class="chips" data-c="qual"></div></div></div></details>
 <details><summary>Villes d'achat</summary><div class="in"><div class="full chips" data-c="cities"></div></div></details>
 <details><summary>Plan de chargement</summary><div class="in">
 <label>Capital (M)<input type="number" data-k="cap" inputmode="decimal"></label>
 <label>Max. par trajet (%)<input type="number" data-k="pct" inputmode="decimal"></label>
 <label class="full">Quantité max. par objet<input type="number" data-k="qty" inputmode="numeric"></label></div></details>
 </div>
-<button id="go">Scanner le marché</button><div class="st" id="st">Choisis tes filtres puis scanne.</div>
+<button class="go" id="go">Scanner le marché</button><div class="st" id="st">Choisis tes filtres puis scanne.</div>
 <div id="plan"></div><div id="out"></div><button class="sm" id="unbl" hidden>Réafficher les masqués</button></section>
 
 <section id="p-c" hidden><div class="panel">
+<label class="full">Que fabriquer ?<select data-k="ct"><option value="r">Raffinage (T3 à T8)</option><option value="a">Armures (T4 à T8, .0)</option></select></label>
 <label class="full">Taux de retour<select data-k="rr"><option value="15.2">Sans focus, ville normale (15,2 %)</option><option value="36.7">Sans focus, ville bonus (36,7 %)</option><option value="43.5">Focus, ville normale (43,5 %)</option><option value="53.9">Focus, ville bonus (53,9 %)</option></select></label>
 <label>Frais d'atelier par objet<input type="number" data-k="fee" inputmode="numeric"></label>
 <label class="row"><input type="checkbox" data-k="prem">Premium</label></div>
-<button id="cgo">Calculer le raffinage</button><div class="st" id="cst">Raffinage T3 à T8 : achat des matières au moins cher, revente au plus cher. Les taux de retour sont à vérifier en jeu.</div><div id="cout"></div></section>
+<button class="go" id="cgo">Calculer</button><div class="st" id="cst">Matières achetées au moins cher, revente au plus cher (ville ou Marché noir). Vérifie les taux de retour en jeu.</div><div id="cout"></div></section>
 
 <section id="p-k" hidden><div class="panel">
 <label>Solde actuel (M)<input type="number" id="capv" step="0.1" inputmode="decimal"></label>
 <label>Objectif (M)<input type="number" data-k="goal" inputmode="numeric"></label></div>
-<button id="capadd">Enregistrer mon solde</button><div id="capout" style="margin-top:12px"></div></section>
+<button class="go" id="capadd">Enregistrer mon solde</button><div id="capout" style="margin-top:12px"></div></section>
 
 <section id="p-j" hidden><div class="panel">
 <label class="full">Objet<input type="text" id="jn"></label>
 <label>Prix d'achat unité<input type="number" id="jb" inputmode="numeric"></label>
 <label>Prix de vente unité<input type="number" id="js" inputmode="numeric"></label>
 <label class="full">Quantité<input type="number" id="jq" value="1" inputmode="numeric"></label></div>
-<button id="jadd">Ajouter le flip</button><div id="jout" style="margin-top:12px"></div></section>
+<button class="go" id="jadd">Ajouter le flip</button><div id="jout" style="margin-top:12px"></div></section>
 
+<nav><button data-t="f" class="on">Flips</button><button data-t="c">Craft</button><button data-t="k">Capital</button><button data-t="j">Journal</button></nav>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const API="https://europe.albion-online-data.com/api/v2/stats/prices/",CITIES=["Caerleon","Bridgewatch","Fort Sterling","Lymhurst","Martlock","Thetford","Brecilien"];
-const fmt=n=>Math.round(n).toLocaleString("fr-FR"),age=d=>(Date.now()-new Date(d.endsWith("Z")?d:d+"Z"))/6e4;
+const API="https://europe.albion-online-data.com/api/v2/stats/",CITIES=["Caerleon","Bridgewatch","Fort Sterling","Lymhurst","Martlock","Thetford","Brecilien"],BM="Marché noir";
+const QN=["","Normal","Bon","Remarquable","Excellent","Chef-d'œuvre"],TC={4:"#5b8fd0",5:"#d0605b",6:"#e48f3f",7:"#e6c443",8:"#f1efe6"};
+const fmt=n=>Math.round(n).toLocaleString("fr-FR"),fk=n=>{const a=Math.abs(n);return a>=1e6?(n/1e6).toFixed(2)+"M":a>=1e4?(n/1e3).toFixed(1)+"k":fmt(n)};
+const age=d=>(Date.now()-new Date(d.endsWith("Z")?d:d+"Z"))/6e4;
 const SL={ARMOR:"Armure",HEAD:"Casque",SHOES:"Bottes"},MT={PLATE:"Plaque",LEATHER:"Cuir",CLOTH:"Tissu"},SN={PLATE:["soldat","chevalier","gardien"],LEATHER:["mercenaire","chasseur","assassin"],CLOTH:["érudit","clerc","mage"]};
 const W=[["MAIN_FIRESTAFF","Bâtons","Bâton de feu"],["MAIN_FROSTSTAFF","Bâtons","Bâton de givre"],["MAIN_ARCANESTAFF","Bâtons","Bâton arcanique"],["MAIN_HOLYSTAFF","Bâtons","Bâton sacré"],["MAIN_NATURESTAFF","Bâtons","Bâton de nature"],["MAIN_CURSEDSTAFF","Bâtons","Bâton maudit"],["MAIN_SWORD","Épées","Épée"],["MAIN_AXE","Haches","Hache"],["MAIN_MACE","Masses","Masse"],["MAIN_SPEAR","Lances","Lance"],["MAIN_DAGGER","Dagues","Dague"],["2H_BOW","Arcs","Arc"],["2H_CROSSBOW","Arbalètes","Arbalète"],["2H_CLAYMORE","2 mains","Espadon"],["2H_HALBERD","2 mains","Hallebarde"],["OFF_SHIELD","Main gauche","Bouclier"],["OFF_BOOK","Main gauche","Livre"],["BAG","Sacs","Sac"]];
 const INFO={};W.forEach(([b,g,l])=>INFO[b]={g,l});
 for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++)INFO[`${s}_${m}_SET${n}`]={g:MT[m],l:`${SL[s]} ${SN[m][n-1]}`,s:SL[s]};
 const GROUPS=[...new Set(Object.values(INFO).map(i=>i.g))];
-const S=Object.assign({prem:1,dest:"b",mode:"i",mg:10,pf:0,minc:0,bud:5,age:180,top:40,sort:"pf",onlyc:0,favo:0,q:"",tiers:[4,5],ench:[0],cities:[...CITIES],grp:[],slot:[],fav:[],bl:[],cap:25,pct:15,qty:2,goal:1000,rr:"36.7",fee:0},JSON.parse(localStorage.flp2||"{}"));
-const save=()=>{try{localStorage.flp2=JSON.stringify(S)}catch{}};
+const S=Object.assign({prem:1,dest:"b",mode:"i",mg:10,bud:5,vol:0,age:180,top:40,sort:"pf",nosus:0,onlyc:0,favo:0,q:"",tiers:[4,5],ench:[0],qual:[1],cities:[...CITIES],grp:[],slot:[],fav:[],bl:[],cap:25,pct:15,qty:2,goal:1000,rr:"36.7",fee:0,ct:"r"},JSON.parse(localStorage.flp3||"{}"));
+const sv=(k,v)=>{try{localStorage[k]=JSON.stringify(v)}catch{}},ld=(k,d)=>{try{return JSON.parse(localStorage[k])??d}catch{return d}};
+const save=()=>sv("flp3",S);
 $$("[data-k]").forEach(el=>{const k=el.dataset.k;el.type==="checkbox"?el.checked=!!S[k]:el.value=S[k];el.oninput=()=>{S[k]=el.type==="checkbox"?+el.checked:el.type==="number"?+el.value:el.value;save();$$(`[data-k=${k}]`).forEach(o=>{if(o!==el)o.type==="checkbox"?o.checked=el.checked:o.value=el.value});if(k==="goal")capDraw()}});
 function chip(k,opts){const c=$(`[data-c=${k}]`),draw=()=>c.innerHTML=opts.map(([v,l])=>`<button class="chip${S[k].includes(v)?" on":""}" data-v="${v}">${l}</button>`).join("");c.onclick=e=>{let v=e.target.dataset.v;if(v==null)return;if(!isNaN(v))v=+v;S[k]=S[k].includes(v)?S[k].filter(x=>x!==v):[...S[k],v];save();draw()};draw()}
-chip("grp",GROUPS.map(g=>[g,g]));chip("slot",Object.values(SL).map(s=>[s,s]));chip("tiers",[4,5,6,7,8].map(t=>[t,"T"+t]));chip("ench",[0,1,2,3].map(e=>[e,"."+e]));chip("cities",CITIES.map(c=>[c,c]));
-$$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));$$("section").forEach(s=>s.hidden=s.id!=="p-"+b.dataset.t)});
+chip("grp",GROUPS.map(g=>[g,g]));chip("slot",Object.values(SL).map(s=>[s,s]));chip("tiers",[4,5,6,7,8].map(t=>[t,"T"+t]));chip("ench",[0,1,2,3,4].map(e=>[e,"."+e]));chip("qual",[1,2,3,4,5].map(q=>[q,QN[q]]));chip("cities",CITIES.map(c=>[c,c]));
+$$("nav button").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.toggle("on",x===b));$$("section").forEach(s=>s.hidden=s.id!=="p-"+b.dataset.t)});
 const nice=id=>{const m=id.match(/^T(\d)_(.+?)(?:@(\d))?$/),i=m&&INFO[m[2]];return i?`T${m[1]}${m[3]?"."+m[3]:""} ${i.l}`:id};
-async function chunk(l,bm){const u=`${API}${l.join(",")}.json?locations=${encodeURIComponent((bm?[...CITIES,"Black Market"]:CITIES).join(","))}&qualities=1`;const r=await fetch(u);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
-async function pull(ids,bm,fn){const out=[];let i=0,n=0;const w=async()=>{while(i<ids.length){const s=ids.slice(i,i+40);i+=40;out.push(...await chunk(s,bm));n+=s.length;fn&&fn(n)}};await Promise.all([w(),w(),w()]);return out}
+const card=(id,q,title,pf,tags,l1,l2,acts="")=>{const t=+((id.match(/^T(\d)/)||[])[1]);return `<div class="c" style="--tc:${TC[t]||"var(--line)"}"><img class="ic" loading="lazy" alt="" src="https://render.albiononline.com/v1/item/${id}.png?size=64&quality=${q||1}" onerror="this.style.visibility='hidden'"><div class="nm">${title}</div><div class="pf ${pf<0?"neg":""}">${pf<0?"":"+"}${fk(pf)}</div><div class="tgs">${tags}</div><div class="d">${l1}</div><div class="d">${l2}</div>${acts?`<div class="act">${acts}</div>`:""}</div>`};
+const tg=(t,c="")=>`<span class="tg ${c}">${t}</span>`;
+async function chunk(l,bm,qs){const r=await fetch(`${API}prices/${l.join(",")}.json?locations=${encodeURIComponent((bm?[...CITIES,BM]:CITIES).join(","))}&qualities=${qs}`);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
+async function pull(ids,bm,fn,qs=S.qual.join(",")||"1"){const out=[];let i=0,n=0;const w=async()=>{while(i<ids.length){const s=ids.slice(i,i+40);i+=40;out.push(...await chunk(s,bm,qs));n+=s.length;fn&&fn(n)}};await Promise.all([w(),w(),w()]);return out}
 const FAIL="Échec de la requête. Si c'est « Failed to fetch », le navigateur bloque l'API : réessaie plus tard ou demande un relais CORS.";
+/* VOLUME + PRIX MOYEN (historique AODP) */
+let HIST=ld("flh",{});
+async function hist(res){const ids=[...new Set(res.map(r=>r.id))],cs=new Set();res.forEach(r=>{cs.add(r.c);if(r.dn!==BM)cs.add(r.dn)});const cut=Date.now()-7*864e5;
+ for(let i=0;i<ids.length;i+=25){try{const r=await fetch(`${API}history/${ids.slice(i,i+25).join(",")}.json?time-scale=24&locations=${encodeURIComponent([...cs].join(","))}&qualities=${S.qual.join(",")||"1"}`);if(!r.ok)continue;
+  for(const h of await r.json()){let n=0,v=0;h.data.forEach(x=>{if(new Date(x.timestamp+"Z")>cut){n+=x.item_count;v+=x.avg_price*x.item_count}});HIST[`${h.item_id}#${h.quality}|${h.location}`]={v:n/7,p:n?v/n:0}}}catch{}}}
+const hv=(id,q,c)=>HIST[`${id}#${q}|${c}`];
 /* FLIPS */
-let ROWS=[];
+let ROWS=[],LAST=0;
 const sel=()=>{const q=S.q.trim().toLowerCase();return Object.entries(INFO).filter(([b,i])=>(!S.grp.length||S.grp.includes(i.g))&&(!i.s||!S.slot.length||S.slot.includes(i.s))&&(!q||i.l.toLowerCase().includes(q)||i.g.toLowerCase().includes(q)))};
-function compute(rows){const by={};for(const r of rows)(by[r.item_id]??={})[r.city]=r;
- const tax=S.prem?.04:.08,ord=S.mode==="o",out=[],cs=S.onlyc?["Caerleon"]:S.cities,ok=(p,d)=>p>0&&age(d)<=S.age;
- for(const id in by){if(S.bl.includes(id)||(S.favo&&!S.fav.includes(id)))continue;const ds=[];
-  if(S.dest==="b"){const m=by[id]["Black Market"];if(m&&ok(m.buy_price_max,m.buy_price_max_date))ds.push({n:"Marché noir",rev:m.buy_price_max*(1-tax),a:age(m.buy_price_max_date)})}
-  else for(const d of CITIES){const m=by[id][d];if(m&&ok(m.sell_price_min,m.sell_price_min_date))ds.push({n:d,rev:(m.sell_price_min-1)*(1-tax-.025),a:age(m.sell_price_min_date)})}
+function compute(rows,pre){const by={};for(const r of rows)(by[r.item_id+"#"+r.quality]??={})[r.city]=r;
+ const tax=S.prem?.04:.08,ord=S.mode==="o",cs=S.onlyc?["Caerleon"]:S.cities,ok=(p,d)=>p>0&&age(d)<=S.age,out=[];
+ for(const k in by){if(S.bl.includes(k)||(S.favo&&!S.fav.includes(k)))continue;const[id,q]=k.split("#"),ds=[];
+  if(S.dest==="b"){const m=by[k][BM];if(m&&ok(m.buy_price_max,m.buy_price_max_date))ds.push({n:BM,rev:m.buy_price_max*(1-tax),a:age(m.buy_price_max_date)})}
+  else for(const d of CITIES){const m=by[k][d];if(m&&ok(m.sell_price_min,m.sell_price_min_date))ds.push({n:d,p:m.sell_price_min,rev:(m.sell_price_min-1)*(1-tax-.025),a:age(m.sell_price_min_date)})}
   let best=null;
-  for(const c of cs){const r=by[id][c];if(!r)continue;const p=ord?r.buy_price_max:r.sell_price_min,dt=ord?r.buy_price_max_date:r.sell_price_min_date;if(!ok(p,dt))continue;
-   const cost=ord?(p+1)*1.025:p;if(cost>S.bud*1e6||cost<S.minc)continue;
-   for(const t of ds){if(t.n===c)continue;const pf=t.rev-cost,m=pf/cost;if(pf<S.pf||m<S.mg/100)continue;if(!best||pf>best.pf)best={id,c,dn:t.n,cost,rev:t.rev,pf,m,a:Math.max(age(dt),t.a)}}}
+  for(const c of cs){const r=by[k][c];if(!r)continue;const p=ord?r.buy_price_max:r.sell_price_min,dt=ord?r.buy_price_max_date:r.sell_price_min_date;if(!ok(p,dt))continue;
+   const cost=ord?(p+1)*1.025:p;if(cost>S.bud*1e6)continue;
+   for(const t of ds){if(t.n===c)continue;const pf=t.rev-cost,m=pf/cost;if(pf<=0||m<S.mg/100)continue;
+    const hb=hv(id,q,c),hd=t.n===BM?null:hv(id,q,t.n),vol=hb?(hd?Math.min(hb.v,hd.v):hb.v):null;
+    const sus=m>1.5?"marge irréaliste":hb&&hb.p&&cost<.7*hb.p?"achat anormalement bas":hd&&hd.p&&t.p>1.3*hd.p?"vente gonflée":"";
+    if(!pre&&((S.vol>0&&(vol==null||vol<S.vol))||(S.nosus&&sus)))continue;
+    if(!best||pf>best.pf)best={k,id,q:+q,c,dn:t.n,cost,rev:t.rev,pf,m,vol,sus,a:Math.max(age(dt),t.a)}}}
   if(best)out.push(best)}
- const k=S.sort;return out.sort((x,y)=>k==="a"||k==="cost"?x[k]-y[k]:y[k]-x[k])}
-function show(){const res=compute(ROWS);$("#st").className="st";$("#st").textContent=res.length?`${res.length} flips trouvés, ${Math.min(S.top,res.length)} affichés.`:"Aucun flip avec ces filtres. Baisse la marge, élargis l'âge des données ou les villes.";
+ const s=S.sort,v=r=>s==="pv"?r.pf*(r.vol||0):s==="vol"?r.vol||0:r[s];return out.sort((x,y)=>s==="a"||s==="cost"?x[s]-y[s]:v(y)-v(x))}
+function show(){const res=compute(ROWS);$("#st").className="st";$("#st").textContent=(res.length?`${res.length} flips, ${Math.min(S.top,res.length)} affichés.`:"Aucun flip avec ces filtres. Baisse la marge, élargis l'âge des données ou les villes.")+(LAST?` Scan d'il y a ${Math.round((Date.now()-LAST)/6e4)} min.`:"");
  let rem=S.cap*1e6*S.pct/100,tot=0,pr=0;const L=[];for(const r of res){const q=Math.min(S.qty,Math.floor(rem/r.cost));if(q<1)continue;rem-=q*r.cost;tot+=q*r.cost;pr+=q*r.pf;L.push(`${q}× ${nice(r.id)} : achat ${r.c} (${fmt(q*r.cost)})`)}
  $("#plan").innerHTML=L.length?`<div class="box"><b>Plan de chargement</b><br>Budget ${fmt(S.cap*1e6*S.pct/100)}, dépensé ${fmt(tot)}, profit attendu +${fmt(pr)}<br>${L.join("<br>")}</div>`:"";
- $("#out").innerHTML=res.slice(0,S.top).map(r=>`<div class="it"><div class="nm">${nice(r.id)}</div><div class="pf">+${fmt(r.pf)}</div>
- <div class="d">${r.c==="Caerleon"&&r.dn==="Marché noir"?'<span class="z">Caerleon : 0 trajet</span>':"Achat "+r.c} à ${fmt(r.cost)}</div><div class="d r">${(r.m*100).toFixed(1)} %</div>
- <div class="d">Vente ${r.dn} : ${fmt(r.rev)} net</div><div class="d r">il y a ${Math.round(r.a)} min</div>
- <div class="act"><button class="sm" data-a="f" data-id="${r.id}">${S.fav.includes(r.id)?"★ Favori":"☆ Favori"}</button><button class="sm" data-a="b" data-id="${r.id}">Masquer</button></div></div>`).join("");
+ $("#out").innerHTML=res.slice(0,S.top).map(r=>card(r.id,r.q,nice(r.id),r.pf,(r.c==="Caerleon"&&r.dn===BM?tg("Caerleon : 0 trajet","w"):tg(r.c))+tg((r.m*100).toFixed(0)+" % de marge","g")+(r.q>1?tg(QN[r.q]):"")+(r.vol!=null?tg(Math.round(r.vol)+" ventes/jour"):tg("volume inconnu"))+tg("il y a "+Math.round(r.a)+" min")+(r.sus?tg("⚠ "+r.sus,"b"):""),`Achat ${r.c} : ${fmt(r.cost)}`,`Vente ${r.dn} : ${fmt(r.rev)} net`,`<button class="sm" data-a="f" data-id="${r.k}">${S.fav.includes(r.k)?"★ Favori":"☆ Favori"}</button><button class="sm" data-a="b" data-id="${r.k}">Masquer</button>`)).join("");
  $("#unbl").hidden=!S.bl.length;$("#unbl").textContent=`Réafficher les masqués (${S.bl.length})`}
 $("#out").onclick=e=>{const a=e.target.dataset.a,id=e.target.dataset.id;if(!a)return;const k=a==="f"?"fav":"bl";S[k]=S[k].includes(id)?S[k].filter(x=>x!==id):[...S[k],id];save();show()};
 $("#unbl").onclick=()=>{S.bl=[];save();show()};
 $("#go").onclick=async()=>{const b=$("#go"),st=$("#st");b.disabled=true;$("#out").innerHTML=$("#plan").innerHTML="";
  const ids=[];for(const t of S.tiers)for(const [bs] of sel())for(const e of S.ench)ids.push(`T${t}_${bs}${e?"@"+e:""}`);
  if(!ids.length){st.className="st err";st.textContent="Aucun objet sélectionné : choisis un tier et des types.";b.disabled=false;return}
- try{ROWS=await pull(ids,true,n=>{st.className="st";st.textContent=`Scan ${n} / ${ids.length} objets…`})}catch(e){st.className="st err";st.textContent=FAIL+" ("+e.message+")";b.disabled=false;return}
- show();b.disabled=false};
+ try{ROWS=await pull(ids,true,n=>{st.className="st";st.textContent=`Scan ${n} / ${ids.length} objets…`});LAST=Date.now();st.textContent="Analyse du volume et des prix moyens…";HIST={};await hist(compute(ROWS,1).slice(0,60))}catch(e){st.className="st err";st.textContent=FAIL+" ("+e.message+")";b.disabled=false;return}
+ sv("fll",{t:LAST,r:ROWS.map(r=>[r.item_id,r.city,r.quality,r.sell_price_min,r.sell_price_min_date,r.buy_price_max,r.buy_price_max_date])});sv("flh",HIST);show();b.disabled=false};
+{const o=ld("fll",null);if(o){ROWS=o.r.map(a=>({item_id:a[0],city:a[1],quality:a[2],sell_price_min:a[3],sell_price_min_date:a[4],buy_price_max:a[5],buy_price_max_date:a[6]}));LAST=o.t;show()}}
 /* CRAFT */
-const RES=[["WOOD","PLANKS","Planches"],["ORE","METALBAR","Barres"],["HIDE","LEATHER","Cuir"],["FIBER","CLOTH","Tissu"],["ROCK","STONEBLOCK","Pierre taillée"]],QR={3:2,4:2,5:3,6:4,7:5,8:5};
-$("#cgo").onclick=async()=>{const b=$("#cgo"),st=$("#cst");b.disabled=true;const ids=[];for(const [r,f] of RES)for(let t=2;t<=8;t++)ids.push(`T${t}_${r}`,`T${t}_${f}`);
- let rows;try{rows=await pull(ids,false,n=>{st.className="st";st.textContent=`Scan ${n} / ${ids.length}…`})}catch(e){st.className="st err";st.textContent=FAIL;b.disabled=false;return}
- const by={};for(const r of rows)(by[r.item_id]??={})[r.city]=r;
- const lo=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];if(r.sell_price_min>0&&age(r.sell_price_min_date)<=S.age&&(!b||r.sell_price_min<b.p))b={p:r.sell_price_min,c}}return b},
- hi=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];if(r.sell_price_min>0&&age(r.sell_price_min_date)<=S.age&&(!b||r.sell_price_min>b.p))b={p:r.sell_price_min,c}}return b};
- const rr=+S.rr/100,tax=S.prem?.04:.08,out=[];
- for(const [r,f,n] of RES)for(let t=3;t<=8;t++){const a=lo(`T${t}_${r}`),p=lo(`T${t-1}_${f}`),s=hi(`T${t}_${f}`);if(!a||!p||!s)continue;
-  const cost=(QR[t]*a.p+p.p)*(1-rr)+ +S.fee,rev=(s.p-1)*(1-tax-.025),pf=rev-cost;out.push({n:`T${t} ${n}`,a,p,s,cost,pf,m:pf/cost})}
- out.sort((x,y)=>y.pf-x.pf);st.className="st";st.textContent=out.length?`${out.length} raffinages calculés (profit par unité).`:"Pas assez de données fraîches. Augmente « Données max. » dans l'onglet Flips.";
- $("#cout").innerHTML=out.map(o=>`<div class="it"><div class="nm">${o.n}</div><div class="pf ${o.pf<0?"neg":""}">${o.pf<0?"":"+"}${fmt(o.pf)}</div>
- <div class="d">Matières ${fmt(o.cost)} (brut ${o.a.c}, précédent ${o.p.c})</div><div class="d r">${(o.m*100).toFixed(1)} %</div>
- <div class="d">Revente ${o.s.c} : ${fmt(o.s.p)}</div></div>`).join("");b.disabled=false};
+const RES=[["WOOD","PLANKS","Planches"],["ORE","METALBAR","Barres"],["HIDE","LEATHER","Cuir"],["FIBER","CLOTH","Tissu"],["ROCK","STONEBLOCK","Pierre taillée"]],QR={3:2,4:2,5:3,6:4,7:5,8:5},REF={PLATE:"METALBAR",LEATHER:"LEATHER",CLOTH:"CLOTH"},QA={ARMOR:16,HEAD:8,SHOES:8};
+$("#cgo").onclick=async()=>{const b=$("#cgo"),st=$("#cst");b.disabled=true;const ids=[],A=S.ct==="a";
+ if(A)for(let t=4;t<=8;t++){for(const m in REF)ids.push(`T${t}_${REF[m]}`);for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++)ids.push(`T${t}_${s}_${m}_SET${n}`)}
+ else for(const [r,f] of RES)for(let t=2;t<=8;t++)ids.push(`T${t}_${r}`,`T${t}_${f}`);
+ let rows;try{rows=await pull(ids,true,n=>{st.className="st";st.textContent=`Scan ${n} / ${ids.length}…`},"1")}catch(e){st.className="st err";st.textContent=FAIL;b.disabled=false;return}
+ const by={};for(const r of rows)(by[r.item_id]??={})[r.city]=r;const rr=+S.rr/100,tax=S.prem?.04:.08,fr=r=>r.sell_price_min>0&&age(r.sell_price_min_date)<=S.age;
+ const lo=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];if(c!==BM&&fr(r)&&(!b||r.sell_price_min<b.p))b={p:r.sell_price_min,c}}return b};
+ const so=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];let v=0;if(c===BM)v=r.buy_price_max>0&&age(r.buy_price_max_date)<=S.age?r.buy_price_max*(1-tax):0;else v=fr(r)?(r.sell_price_min-1)*(1-tax-.025):0;if(v>0&&(!b||v>b.v))b={v,c}}return b};
+ const out=[];
+ if(A){for(let t=4;t<=8;t++)for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++){const id=`T${t}_${s}_${m}_SET${n}`,M=lo(`T${t}_${REF[m]}`),o=so(id);if(!M||!o)continue;const cost=QA[s]*M.p*(1-rr)+ +S.fee,pf=o.v-cost;out.push({id,t:nice(id),M,o,q:QA[s],cost,pf,m:pf/cost,mn:{METALBAR:"barres",LEATHER:"cuir",CLOTH:"tissu"}[REF[m]]})}}
+ else for(const [r,f,n] of RES)for(let t=3;t<=8;t++){const a=lo(`T${t}_${r}`),p=lo(`T${t-1}_${f}`),o=so(`T${t}_${f}`);if(!a||!p||!o)continue;const cost=(QR[t]*a.p+p.p)*(1-rr)+ +S.fee,pf=o.v-cost;out.push({id:`T${t}_${f}`,t:`T${t} ${n}`,M:a,o,q:QR[t],cost,pf,m:pf/cost,mn:r.toLowerCase(),p})}
+ out.sort((x,y)=>y.pf-x.pf);st.className="st";st.textContent=out.length?`${out.length} résultats (profit par objet fabriqué).`:"Pas assez de données fraîches. Augmente « Données max. » dans l'onglet Flips.";
+ $("#cout").innerHTML=out.slice(0,40).map(o=>card(o.id,1,o.t,o.pf,tg((o.m*100).toFixed(0)+" % de marge","g")+tg("Vente "+o.o.c),`Matières ${fmt(o.cost)} (${o.q}× ${o.mn} à ${o.M.c}${o.p?", 1× palier précédent à "+o.p.c:""})`,`Revente nette ${fmt(o.o.v)}`)).join("");b.disabled=false};
 /* CAPITAL */
-let CAP=[];try{CAP=JSON.parse(localStorage.flc||"[]")}catch{}
+let CAP=ld("flc",[]);
 function capDraw(){const g=S.goal*1e6,L=CAP.at(-1),v=L?L.v:0;let h=`<div class="bar"><i style="width:${Math.min(100,v/g*100)}%"></i></div><p class="d">${fmt(v)} / ${fmt(g)} (${(v/g*100).toFixed(1)} %)</p>`;
  if(CAP.length>1){const f=CAP[0],dy=(L.t-f.t)/864e5;if(dy>=.5&&L.v>f.v){const r=Math.pow(L.v/f.v,1/dy),eta=v>=g?0:Math.log(g/v)/Math.log(r);h+=`<p>Rythme : +${((r-1)*100).toFixed(1)} % par jour. ${eta?`Objectif dans ~${Math.ceil(eta)} jours (${new Date(Date.now()+eta*864e5).toLocaleDateString("fr-FR")}) si ça continue.`:"Objectif atteint."}</p>`}else h+='<p class="d">Enregistre ton solde sur au moins 12 h pour estimer le rythme.</p>';
   const mn=CAP[0].t,mx=L.t,top=Math.max(...CAP.map(c=>c.v),1);h+=`<svg viewBox="0 0 300 60" width="100%"><polyline fill="none" stroke="var(--gold)" stroke-width="2" points="${CAP.map(c=>`${(c.t-mn)/(mx-mn||1)*300},${58-c.v/top*54}`).join(" ")}"/></svg>`}
  h+=CAP.slice(-8).reverse().map(c=>`<div class="d">${new Date(c.t).toLocaleString("fr-FR")} : ${fmt(c.v)}</div>`).join("")+(CAP.length?'<button class="sm" id="capundo">Annuler le dernier</button>':"");$("#capout").innerHTML=h}
-$("#capadd").onclick=()=>{const v=+$("#capv").value*1e6;if(!v)return;CAP.push({t:Date.now(),v});try{localStorage.flc=JSON.stringify(CAP)}catch{}$("#capv").value="";capDraw()};
-$("#capout").onclick=e=>{if(e.target.id==="capundo"){CAP.pop();try{localStorage.flc=JSON.stringify(CAP)}catch{}capDraw()}};capDraw();
+$("#capadd").onclick=()=>{const v=+$("#capv").value*1e6;if(!v)return;CAP.push({t:Date.now(),v});sv("flc",CAP);$("#capv").value="";capDraw()};
+$("#capout").onclick=e=>{if(e.target.id==="capundo"){CAP.pop();sv("flc",CAP);capDraw()}};capDraw();
 /* JOURNAL */
-let J=[];try{J=JSON.parse(localStorage.flj||"[]")}catch{}
+let J=ld("flj",[]);
 function jDraw(){let pf=0,inv=0,w=0;J.forEach(e=>{pf+=e.pf;inv+=e.b*e.q;if(e.pf>0)w++});
- $("#jout").innerHTML=(J.length?`<div class="box">${J.length} flips, profit total <b class="${pf<0?"neg":""}">${fmt(pf)}</b>, marge moyenne ${(pf/inv*100).toFixed(1)} %, réussite ${Math.round(w/J.length*100)} %</div>`:"")+J.map((e,i)=>`<div class="it"><div class="nm">${e.n||"Flip"} ×${e.q}</div><div class="pf ${e.pf<0?"neg":""}">${fmt(e.pf)}</div><div class="d">${new Date(e.t).toLocaleDateString("fr-FR")} : ${fmt(e.b)} → ${fmt(e.s)}</div><div class="act"><button class="sm" data-d="${i}">Supprimer</button></div></div>`).reverse().join("")}
-$("#jadd").onclick=()=>{const b=+$("#jb").value,s=+$("#js").value,q=+$("#jq").value||1;if(!b||!s)return;J.push({t:Date.now(),n:$("#jn").value,b,s,q,pf:s*(1-(S.prem?.04:.08))*q-b*q});try{localStorage.flj=JSON.stringify(J)}catch{}["#jn","#jb","#js"].forEach(x=>$(x).value="");jDraw()};
-$("#jout").onclick=e=>{const d=e.target.dataset.d;if(d==null)return;J.splice(+d,1);try{localStorage.flj=JSON.stringify(J)}catch{}jDraw()};jDraw();
+ $("#jout").innerHTML=(J.length?`<div class="box">${J.length} flips, profit total <b class="${pf<0?"neg":""}">${fmt(pf)}</b>, marge moyenne ${(pf/inv*100).toFixed(1)} %, réussite ${Math.round(w/J.length*100)} %</div>`:"")+J.map((e,i)=>`<div class="c"><div class="nm" style="grid-column:1/3">${e.n||"Flip"} ×${e.q}</div><div class="pf ${e.pf<0?"neg":""}">${fmt(e.pf)}</div><div class="d" style="grid-column:1/4">${new Date(e.t).toLocaleDateString("fr-FR")} : ${fmt(e.b)} → ${fmt(e.s)}</div><div class="act"><button class="sm" data-d="${i}">Supprimer</button></div></div>`).reverse().join("")}
+$("#jadd").onclick=()=>{const b=+$("#jb").value,s=+$("#js").value,q=+$("#jq").value||1;if(!b||!s)return;J.push({t:Date.now(),n:$("#jn").value,b,s,q,pf:s*(1-(S.prem?.04:.08))*q-b*q});sv("flj",J);["#jn","#jb","#js"].forEach(x=>$(x).value="");jDraw()};
+$("#jout").onclick=e=>{const d=e.target.dataset.d;if(d==null)return;J.splice(+d,1);sv("flj",J);jDraw()};jDraw();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
