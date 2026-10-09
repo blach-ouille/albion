@@ -32,6 +32,9 @@ button:disabled{opacity:.5}:focus-visible{outline:2px solid var(--gold);outline-
 .tg.w{background:var(--gold);color:#241a05;font-weight:700}.tg.g{color:var(--gain)}.tg.b{background:#5a2a24;color:#ffc9bb}
 .box{background:var(--s1);border:1px solid var(--gold);border-radius:14px;padding:11px 13px;margin:10px 0;font-size:.85rem}
 .bar{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:7px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gain),var(--gold))}
+.ac{position:absolute;left:0;right:0;top:100%;z-index:6;margin-top:3px;background:var(--s2);border:1px solid var(--gold);border-radius:10px;max-height:250px;overflow:auto}
+.sg{display:block;width:100%;text-align:left;background:none;color:var(--ink);border:0;border-bottom:1px solid var(--line);padding:12px;font-size:.92rem}
+label{position:relative}.c.x{cursor:pointer}.more{grid-column:1/4;border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-size:.84rem}.more ol{margin:0 0 8px;padding-left:20px}.more li{margin:6px 0}
 </style></head><body>
 <h1>Flipper Albion</h1><p class="sub">Serveur Europe, données AODP. Vérifie toujours les prix en jeu.</p>
 
@@ -48,8 +51,9 @@ button:disabled{opacity:.5}:focus-visible{outline:2px solid var(--gold);outline-
 <label class="row"><input type="checkbox" data-k="favo">Favoris seulement</label>
 <details><summary>Objets</summary><div class="in">
 <label class="full">Recherche<input type="text" data-k="q" placeholder="ex. feu, soldat, sac"></label>
-<div class="full">Types<div class="chips" data-c="grp"></div></div>
-<div class="full">Emplacement (armures)<div class="chips" data-c="slot"></div></div>
+<div class="full">Catégorie<div class="chips" data-c="cat"></div></div>
+<div class="full">Sous-catégorie<div class="chips" data-c="grp"></div></div>
+<div class="full" id="slotbox" hidden>Emplacement<div class="chips" data-c="slot"></div></div>
 <div class="full">Tiers<div class="chips" data-c="tiers"></div></div>
 <div class="full">Enchantements<div class="chips" data-c="ench"></div></div>
 <div class="full">Qualités<div class="chips" data-c="qual"></div></div></div></details>
@@ -65,9 +69,11 @@ button:disabled{opacity:.5}:focus-visible{outline:2px solid var(--gold);outline-
 <section id="p-c" hidden><div class="panel">
 <label class="full">Que fabriquer ?<select data-k="ct"><option value="r">Raffinage (T3 à T8)</option><option value="a">Armures (T4 à T8, .0)</option></select></label>
 <label class="full">Taux de retour<select data-k="rr"><option value="15.2">Sans focus, ville normale (15,2 %)</option><option value="36.7">Sans focus, ville bonus (36,7 %)</option><option value="43.5">Focus, ville normale (43,5 %)</option><option value="53.9">Focus, ville bonus (53,9 %)</option></select></label>
+<div class="full">Ce que je sais fabriquer<div class="chips" data-c="cm"></div></div>
+<div class="full">Tiers que je peux fabriquer<div class="chips" data-c="ctr"></div></div>
 <label>Frais d'atelier par objet<input type="number" data-k="fee" inputmode="numeric"></label>
 <label class="row"><input type="checkbox" data-k="prem">Premium</label></div>
-<button class="go" id="cgo">Calculer</button><div class="st" id="cst">Matières achetées au moins cher, revente au plus cher (ville ou Marché noir). Vérifie les taux de retour en jeu.</div><div id="cout"></div></section>
+<button class="go" id="cgo">Calculer</button><div class="st" id="cst">Matières achetées au moins cher, revente au plus cher (ville ou Marché noir). Coche ce que tu sais fabriquer (rien coché = tout). Touche un résultat pour voir les étapes.</div><div id="cout"></div></section>
 
 <section id="p-k" hidden><div class="panel">
 <label>Solde actuel (M)<input type="number" id="capv" step="0.1" inputmode="decimal"></label>
@@ -90,18 +96,27 @@ const MAXAGE=10080,fmt=n=>Math.round(n).toLocaleString("fr-FR"),fk=n=>{const a=M
 const age=d=>(Date.now()-new Date(d.endsWith("Z")?d:d+"Z"))/6e4;
 const SL={ARMOR:"Armure",HEAD:"Casque",SHOES:"Bottes"},MT={PLATE:"Plaque",LEATHER:"Cuir",CLOTH:"Tissu"},SN={PLATE:["soldat","chevalier","gardien"],LEATHER:["mercenaire","chasseur","assassin"],CLOTH:["érudit","clerc","mage"]};
 const W=[["MAIN_FIRESTAFF","Bâtons","Bâton de feu"],["MAIN_FROSTSTAFF","Bâtons","Bâton de givre"],["MAIN_ARCANESTAFF","Bâtons","Bâton arcanique"],["MAIN_HOLYSTAFF","Bâtons","Bâton sacré"],["MAIN_NATURESTAFF","Bâtons","Bâton de nature"],["MAIN_CURSEDSTAFF","Bâtons","Bâton maudit"],["MAIN_SWORD","Épées","Épée"],["MAIN_AXE","Haches","Hache"],["MAIN_MACE","Masses","Masse"],["MAIN_SPEAR","Lances","Lance"],["MAIN_DAGGER","Dagues","Dague"],["2H_BOW","Arcs","Arc"],["2H_CROSSBOW","Arbalètes","Arbalète"],["2H_CLAYMORE","2 mains","Espadon"],["2H_HALBERD","2 mains","Hallebarde"],["OFF_SHIELD","Main gauche","Bouclier"],["OFF_BOOK","Main gauche","Livre"],["BAG","Sacs","Sac"]];
-const INFO={};W.forEach(([b,g,l])=>INFO[b]={g,l});
+const INFO={};W.forEach(([b,g,l])=>INFO[b]={g:g==="Bâtons"?l:g==="Main gauche"?(b==="OFF_SHIELD"?"Boucliers":"Livres"):g,l});
 for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++)INFO[`${s}_${m}_SET${n}`]={g:MT[m],l:`${SL[s]} ${SN[m][n-1]}`,s:SL[s]};
 const GROUPS=[...new Set(Object.values(INFO).map(i=>i.g))];
-const S=Object.assign({prem:1,dest:"b",mode:"i",mg:10,bud:5,vol:0,age:180,top:40,sort:"pf",nosus:0,onlyc:0,favo:0,q:"",tiers:[4,5],ench:[0],qual:[1],cities:[...CITIES],grp:[],slot:[],fav:[],bl:[],cap:25,pct:15,qty:2,goal:1000,rr:"36.7",fee:0,ct:"r"},JSON.parse(localStorage.flp3||"{}"));
+const S=Object.assign({prem:1,dest:"b",mode:"i",mg:10,bud:5,vol:0,age:180,top:40,sort:"pf",nosus:0,onlyc:0,favo:0,q:"",tiers:[4,5],ench:[0],qual:[1],cities:[...CITIES],grp:[],slot:[],fav:[],bl:[],cap:25,pct:15,qty:2,goal:1000,rr:"36.7",fee:0,ct:"r",cat:[],cm:[],ctr:[]},JSON.parse(localStorage.flp3||"{}"));
 const sv=(k,v)=>{try{localStorage[k]=JSON.stringify(v)}catch{}},ld=(k,d)=>{try{return JSON.parse(localStorage[k])??d}catch{return d}};
 const save=()=>sv("flp3",S);
 $$("[data-k]").forEach(el=>{const k=el.dataset.k;el.type==="checkbox"?el.checked=!!S[k]:el.value=S[k];el.oninput=()=>{S[k]=el.type==="checkbox"?+el.checked:el.type==="number"?+el.value:el.value;save();$$(`[data-k=${k}]`).forEach(o=>{if(o!==el)o.type==="checkbox"?o.checked=el.checked:o.value=el.value});if(k==="goal")capDraw()}});
-function chip(k,opts){const c=$(`[data-c=${k}]`),draw=()=>c.innerHTML=opts.map(([v,l])=>`<button class="chip${S[k].includes(v)?" on":""}" data-v="${v}">${l}</button>`).join("");c.onclick=e=>{let v=e.target.dataset.v;if(v==null)return;if(!isNaN(v))v=+v;S[k]=S[k].includes(v)?S[k].filter(x=>x!==v):[...S[k],v];save();draw()};draw()}
-chip("grp",GROUPS.map(g=>[g,g]));chip("slot",Object.values(SL).map(s=>[s,s]));chip("tiers",[4,5,6,7,8].map(t=>[t,"T"+t]));chip("ench",[0,1,2,3,4].map(e=>[e,"."+e]));chip("qual",[1,2,3,4,5].map(q=>[q,QN[q]]));chip("cities",CITIES.map(c=>[c,c]));
+const D={},ARMG=["Plaque","Cuir","Tissu"],TREE=[["Mêlée",["Épées","Haches","Masses","Lances","Dagues","2 mains"]],["Distance",["Arcs","Arbalètes"]],["Magie",["Bâton de feu","Bâton de givre","Bâton arcanique","Bâton sacré","Bâton de nature","Bâton maudit"]],["Armures",ARMG],["Main gauche",["Boucliers","Livres"]],["Sacs",["Sacs"]]];
+const subs=()=>TREE.filter(t=>S.cat.includes(t[0])).flatMap(t=>t[1]),armor=()=>S.cat.includes("Armures")||S.grp.some(g=>ARMG.includes(g));
+function chip(k,opts,fn){const c=$(`[data-c=${k}]`),draw=D[k]=()=>{const o=typeof opts==="function"?opts():opts;c.innerHTML=o.length?o.map(([v,l])=>`<button class="chip${S[k].includes(v)?" on":""}" data-v="${v}">${l}</button>`).join(""):'<span class="d">Choisis une catégorie ci-dessus.</span>'};c.onclick=e=>{let v=e.target.dataset.v;if(v==null)return;if(!isNaN(v))v=+v;S[k]=S[k].includes(v)?S[k].filter(x=>x!==v):[...S[k],v];save();fn&&fn();draw()};draw()}
+const sync=()=>{S.grp=S.grp.filter(g=>subs().includes(g));D.grp();$("#slotbox").hidden=!armor()};
+chip("cat",TREE.map(t=>[t[0],t[0]]),sync);chip("grp",()=>subs().map(g=>[g,g]),()=>$("#slotbox").hidden=!armor());chip("slot",Object.values(SL).map(x=>[x,x]));chip("tiers",[4,5,6,7,8].map(t=>[t,"T"+t]));chip("ench",[0,1,2,3,4].map(e=>[e,"."+e]));chip("qual",[1,2,3,4,5].map(q=>[q,QN[q]]));chip("cities",CITIES.map(c=>[c,c]));
+chip("cm",[["PLANKS","Planches"],["METALBAR","Barres"],["LEATHER","Cuir"],["CLOTH","Tissu"],["STONEBLOCK","Pierre"]]);chip("ctr",[3,4,5,6,7,8].map(t=>[t,"T"+t]));sync();
 $$("nav button").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.toggle("on",x===b));$$("section").forEach(s=>s.hidden=s.id!=="p-"+b.dataset.t)});
 const nice=id=>{const m=id.match(/^T(\d)_(.+?)(?:@(\d))?$/),i=m&&INFO[m[2]];return i?`T${m[1]}${m[3]?"."+m[3]:""} ${i.l}`:id};
-const card=(id,q,title,pf,tags,l1,l2,acts="")=>{const t=+((id.match(/^T(\d)/)||[])[1]);return `<div class="c" style="--tc:${TC[t]||"var(--line)"}"><img class="ic" loading="lazy" alt="" src="https://render.albiononline.com/v1/item/${id}.png?size=64&quality=${q||1}" onerror="this.style.visibility='hidden'"><div class="nm">${title}</div><div class="pf ${pf<0?"neg":""}">${pf<0?"":"+"}${fk(pf)}</div><div class="tgs">${tags}</div><div class="d">${l1}</div><div class="d">${l2}</div>${acts?`<div class="act">${acts}</div>`:""}</div>`};
+const card=(id,q,title,pf,tags,l1,l2,acts="",more="")=>{const t=+((id.match(/^T(\d)/)||[])[1]);return `<div class="c${more?" x":""}" style="--tc:${TC[t]||"var(--line)"}"><img class="ic" loading="lazy" alt="" src="https://render.albiononline.com/v1/item/${id}.png?size=64&quality=${q||1}" onerror="this.style.visibility='hidden'"><div class="nm">${title}</div><div class="pf ${pf<0?"neg":""}">${pf<0?"":"+"}${fk(pf)}</div><div class="tgs">${tags}</div><div class="d">${l1}</div><div class="d">${l2}</div>${acts?`<div class="act">${acts}</div>`:""}${more?`<div class="more" hidden>${more}</div>`:""}</div>`};
+const LAB=[...new Set(Object.values(INFO).map(i=>i.l))],JL=LAB.flatMap(l=>[4,5,6,7,8].map(t=>`T${t} ${l}`));
+function ac(el,list){const box=document.createElement("div");box.className="ac";box.hidden=true;el.parentNode.appendChild(box);
+ const upd=()=>{const w=el.value.toLowerCase().split(/\s+/).filter(Boolean),r=w.length?list().filter(x=>w.every(y=>x.toLowerCase().includes(y))).slice(0,8):[];box.innerHTML=r.map(x=>`<button type="button" class="sg">${x}</button>`).join("");box.hidden=!r.length};
+ el.addEventListener("input",upd);el.addEventListener("focus",upd);el.addEventListener("blur",()=>setTimeout(()=>box.hidden=true,250));
+ box.onclick=e=>{const b=e.target.closest(".sg");if(!b)return;el.value=b.textContent;el.dispatchEvent(new Event("input"));box.hidden=true}}
 const tg=(t,c="")=>`<span class="tg ${c}">${t}</span>`;
 async function chunk(l,bm,qs){const r=await fetch(`${API}prices/${l.join(",")}.json?locations=${encodeURIComponent((bm?[...CITIES,BM]:CITIES).join(","))}&qualities=${qs}`);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
 async function pull(ids,bm,fn,qs=S.qual.join(",")||"1"){const out=[];let i=0,n=0;const w=async()=>{while(i<ids.length){const s=ids.slice(i,i+40);i+=40;out.push(...await chunk(s,bm,qs));n+=s.length;fn&&fn(n)}};await Promise.all([w(),w(),w()]);return out}
@@ -112,9 +127,10 @@ async function hist(res){const ids=[...new Set(res.map(r=>r.id))],cs=new Set();r
  for(let i=0;i<ids.length;i+=25){try{const r=await fetch(`${API}history/${ids.slice(i,i+25).join(",")}.json?time-scale=24&locations=${encodeURIComponent([...cs].join(","))}&qualities=${S.qual.join(",")||"1"}`);if(!r.ok)continue;
   for(const h of await r.json()){let n=0,v=0;h.data.forEach(x=>{if(new Date(x.timestamp+"Z")>cut){n+=x.item_count;v+=x.avg_price*x.item_count}});HIST[`${h.item_id}#${h.quality}|${h.location}`]={v:n/7,p:n?v/n:0}}}catch{}}}
 const hv=(id,q,c)=>HIST[`${id}#${q}|${c}`];
+ac($('[data-k="q"]'),()=>[...LAB,...TREE.flatMap(t=>t[1])]);ac($("#jn"),()=>JL);
 /* FLIPS */
 let ROWS=[],LAST=0;
-const sel=()=>{const q=S.q.trim().toLowerCase();return Object.entries(INFO).filter(([b,i])=>(!S.grp.length||S.grp.includes(i.g))&&(!i.s||!S.slot.length||S.slot.includes(i.s))&&(!q||i.l.toLowerCase().includes(q)||i.g.toLowerCase().includes(q)))};
+const sel=()=>{const q=S.q.trim().toLowerCase(),gs=S.grp.length?S.grp:S.cat.length?subs():null;return Object.entries(INFO).filter(([b,i])=>(!gs||gs.includes(i.g))&&(!i.s||!S.slot.length||S.slot.includes(i.s))&&(!q||i.l.toLowerCase().includes(q)||i.g.toLowerCase().includes(q)))};
 function compute(rows,pre){const by={};for(const r of rows)(by[r.item_id+"#"+r.quality]??={})[r.city]=r;
  const tax=S.prem?.04:.08,ord=S.mode==="o",cs=S.onlyc?["Caerleon"]:S.cities,ok=(p,d)=>p>0&&age(d)<=MAXAGE,out=[];
  for(const k in by){if(S.bl.includes(k)||(S.favo&&!S.fav.includes(k)))continue;const[id,q]=k.split("#"),ds=[];
@@ -153,10 +169,15 @@ $("#cgo").onclick=async()=>{const b=$("#cgo"),st=$("#cst");b.disabled=true;const
  const lo=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];if(c!==BM&&fr(r)&&(!b||r.sell_price_min<b.p))b={p:r.sell_price_min,c}}return b};
  const so=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];let v=0;if(c===BM)v=r.buy_price_max>0&&age(r.buy_price_max_date)<=MAXAGE?r.buy_price_max*(1-tax):0;else v=fr(r)?(r.sell_price_min-1)*(1-tax-.025):0;if(v>0&&(!b||v>b.v))b={v,c}}return b};
  const out=[];
- if(A){for(let t=4;t<=8;t++)for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++){const id=`T${t}_${s}_${m}_SET${n}`,M=lo(`T${t}_${REF[m]}`),o=so(id);if(!M||!o)continue;const cost=QA[s]*M.p*(1-rr)+ +S.fee,pf=o.v-cost;out.push({id,t:nice(id),M,o,q:QA[s],cost,pf,m:pf/cost,mn:{METALBAR:"barres",LEATHER:"cuir",CLOTH:"tissu"}[REF[m]]})}}
- else for(const [r,f,n] of RES)for(let t=3;t<=8;t++){const a=lo(`T${t}_${r}`),p=lo(`T${t-1}_${f}`),o=so(`T${t}_${f}`);if(!a||!p||!o)continue;const cost=(QR[t]*a.p+p.p)*(1-rr)+ +S.fee,pf=o.v-cost;out.push({id:`T${t}_${f}`,t:`T${t} ${n}`,M:a,o,q:QR[t],cost,pf,m:pf/cost,mn:r.toLowerCase(),p})}
+ const okc=(key,t)=>(!S.cm.length||S.cm.includes(key))&&(!S.ctr.length||S.ctr.includes(t));
+ if(A){for(let t=4;t<=8;t++)for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++){if(!okc(REF[m],t))continue;const id=`T${t}_${s}_${m}_SET${n}`,M=lo(`T${t}_${REF[m]}`),o=so(id);if(!M||!o)continue;const cost=QA[s]*M.p*(1-rr)+ +S.fee,pf=o.v-cost;out.push({k:"a",id,t:nice(id),tt:t,mt:m,M,o,q:QA[s],cost,pf,m:pf/cost,mn:RFR[REF[m]]})}}
+ else for(const [r,f,n] of RES)for(let t=3;t<=8;t++){if(!okc(f,t))continue;const a=lo(`T${t}_${r}`),p=lo(`T${t-1}_${f}`),o=so(`T${t}_${f}`);if(!a||!p||!o)continue;const cost=(QR[t]*a.p+p.p)*(1-rr)+ +S.fee,pf=o.v-cost;out.push({k:"r",id:`T${t}_${f}`,t:`T${t} ${n}`,tt:t,r,M:a,o,q:QR[t],cost,pf,m:pf/cost,mn:RAW[r],rn:RFR[f],p})}
  out.sort((x,y)=>y.pf-x.pf);st.className="st";st.textContent=out.length?`${out.length} résultats (profit par objet fabriqué).`:"Pas assez de données récentes pour ces objets.";
- $("#cout").innerHTML=out.slice(0,40).map(o=>card(o.id,1,o.t,o.pf,tg((o.m*100).toFixed(0)+" % de marge","g")+tg("Vente "+dl(o.o.c)),`Matières ${fmt(o.cost)} (${o.q}× ${o.mn} à ${o.M.c}${o.p?", 1× palier précédent à "+o.p.c:""})`,`Revente nette ${fmt(o.o.v)}`)).join("");b.disabled=false};
+ $("#cout").innerHTML=out.slice(0,40).map(o=>card(o.id,1,o.t,o.pf,tg((o.m*100).toFixed(0)+" % de marge","g")+tg("Vente "+dl(o.o.c))+tg("Détail ▾","w"),`Matières ${fmt(o.cost)} (${o.q}× ${o.mn} à ${o.M.c}${o.p?", 1× palier précédent à "+o.p.c:""})`,`Revente nette ${fmt(o.o.v)}`,"",steps(o))).join("");b.disabled=false};
+const RFR={METALBAR:"barres",LEATHER:"cuir",CLOTH:"tissu",PLANKS:"planches",STONEBLOCK:"pierres taillées"},RAW={WOOD:"bois",ORE:"minerai",HIDE:"peaux",FIBER:"fibres",ROCK:"pierres"},BON={WOOD:"Fort Sterling",ORE:"Thetford",HIDE:"Martlock",FIBER:"Lymhurst",ROCK:"Bridgewatch"},STN={PLATE:"Forge du guerrier",LEATHER:"Pavillon du chasseur",CLOTH:"Tour du mage"};
+const steps=o=>{const buy=`Acheter <b>${o.q}× ${o.mn}</b> T${o.tt} à <b>${o.M.c}</b> (~${fmt(o.M.p)} pièce, ${fmt(o.q*o.M.p)} au total).`,sell=`Vendre à <b>${dl(o.o.c)}</b> : environ ${fmt(o.o.v)} net par objet${o.o.c===BM?" (vente immédiate aux ordres d'achat)":" (ordre de vente)"}.`,end=`</ol><div class="d">Pour 10 objets : coût ${fmt(10*o.cost)}, profit ~${fmt(10*o.pf)} (retours déduits).</div>`,ret=`retour ${S.rr} % sur les matières, frais d'atelier ${fmt(+S.fee)}`;
+ return o.k==="r"?`<ol><li>${buy}</li><li>Acheter <b>1× ${o.rn}</b> T${o.tt-1} à <b>${o.p.c}</b> (~${fmt(o.p.p)}).</li><li>Aller à <b>${BON[o.r]}</b> (ville bonus de ce raffinage) et ouvrir la station.</li><li>Raffiner : ${ret}.</li><li>${sell}</li>${end}`:`<ol><li>${buy}</li><li>Aller à l'établi : <b>${STN[o.mt]}</b>.</li><li>Fabriquer <b>${o.t}</b> : ${ret}.</li><li>${sell}</li>${end}`};
+$("#cout").onclick=e=>{const c=e.target.closest(".c.x");if(c){const m=c.querySelector(".more");m.hidden=!m.hidden}};
 /* CAPITAL */
 let CAP=ld("flc",[]);
 function capDraw(){const g=S.goal*1e6,L=CAP.at(-1),v=L?L.v:0;let h=`<div class="bar"><i style="width:${Math.min(100,v/g*100)}%"></i></div><p class="d">${fmt(v)} / ${fmt(g)} (${(v/g*100).toFixed(1)} %)</p>`;
