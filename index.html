@@ -35,6 +35,7 @@ button:disabled{opacity:.5}:focus-visible{outline:2px solid var(--gold);outline-
 .ac{position:absolute;left:0;right:0;top:100%;z-index:6;margin-top:3px;background:var(--s2);border:1px solid var(--gold);border-radius:10px;max-height:250px;overflow:auto}
 .sg{display:block;width:100%;text-align:left;background:none;color:var(--ink);border:0;border-bottom:1px solid var(--line);padding:12px;font-size:.92rem}
 label{position:relative}.c.x{cursor:pointer}.more{grid-column:1/4;border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-size:.84rem}.more ol{margin:0 0 8px;padding-left:20px}.more li{margin:6px 0}
+.kr{border-top:1px solid var(--line);padding:10px 0;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}.kr>.kn,.kr>.act,.kr>.kv,.kr>label.row{grid-column:1/-1}.kn{display:flex;align-items:center;gap:8px}.kr .act{display:flex;gap:8px}.ki{width:38px;height:38px;border-radius:8px;background:var(--s2);vertical-align:middle;margin-right:6px}
 </style></head><body>
 <h1>Flipper Albion</h1><p class="sub">Serveur Europe, données AODP. Vérifie toujours les prix en jeu.</p>
 
@@ -68,16 +69,20 @@ label{position:relative}.c.x{cursor:pointer}.more{grid-column:1/4;border-top:1px
 <button class="go" id="go">Scanner le marché</button><button class="sm" id="rf" style="width:100%;margin-top:8px;padding:11px">↻ Actualiser les résultats affichés</button><div class="st" id="st">Choisis tes filtres puis scanne.</div>
 <div id="plan"></div><div id="out"></div><button class="sm" id="unbl" hidden>Réafficher les masqués</button></section>
 
-<section id="p-c" hidden><div class="panel">
-<label class="full">Que fabriquer ?<select data-k="ct"><option value="r">Raffinage (T3 à T8)</option><option value="a">Armures (T4 à T8, .0)</option></select></label>
-<label class="full">Taux de retour<select data-k="rr"><option value="15.2">Sans focus, ville normale (15,2 %)</option><option value="36.7">Sans focus, ville bonus (36,7 %)</option><option value="43.5">Focus, ville normale (43,5 %)</option><option value="53.9">Focus, ville bonus (53,9 %)</option></select></label>
-<div class="full">Ce que je sais fabriquer<div class="chips" data-c="cm"></div></div>
-<div class="full">Tiers que je peux fabriquer<div class="chips" data-c="ctr"></div></div>
-<div class="full">Villes d'achat des matières (rien coché = toutes)<div class="chips" data-c="ccb"></div></div>
-<div class="full">Villes de revente (rien coché = toutes)<div class="chips" data-c="ccs"></div></div>
-<label>Frais d'atelier par objet<input type="number" data-k="fee" inputmode="numeric"></label>
-<label class="row"><input type="checkbox" data-k="prem">Premium</label></div>
-<button class="go" id="cgo">Calculer</button><div class="st" id="cst">Matières achetées au moins cher, revente au plus cher (ville ou Marché noir). Coche ce que tu sais fabriquer (rien coché = tout). Touche un résultat pour voir les étapes.</div><div id="cout"></div></section>
+<section id="p-c" hidden>
+<div class="panel"><label class="full">Objet fabriqué (recherche)<input type="text" id="ko" placeholder="ex. T5 barres, T6 bâton de feu" autocomplete="off"></label>
+<div class="full" id="kon"></div>
+<label>Prix de vente unitaire<input type="number" data-kk="sp" inputmode="numeric"></label>
+<label>Objets produits par fabrication<input type="number" data-kk="pq" inputmode="numeric"></label>
+<div class="full"><button class="sm" id="kov">Voir les prix par ville</button><div id="kovl" style="margin-top:6px"></div></div></div>
+<div class="panel" style="margin-top:10px"><label class="full">Ajouter un ingrédient (recherche)<input type="text" id="ki" placeholder="ex. T5 barres, T4 cuir" autocomplete="off"></label>
+<div class="full"><button class="sm" id="kif">Ajouter le texte saisi (ingrédient libre, ex. artefact)</button></div>
+<div class="full" id="kig"></div></div>
+<div class="panel" style="margin-top:10px"><label class="full">Type de fabrication<select data-kk="ty"><option value="r">Raffinage (bonus de ville 40)</option><option value="f">Équipement (bonus de ville 15)</option></select></label>
+<label class="row"><input type="checkbox" data-kk="bonus">Ville avec bonus</label><label class="row"><input type="checkbox" data-kk="focus">Avec focus</label>
+<label>Frais d'atelier par fabrication<input type="number" data-kk="fee" inputmode="numeric"></label><label>Nombre de fabrications<input type="number" data-kk="n" inputmode="numeric"></label>
+<label class="row"><input type="checkbox" data-kk="inst">Vente immédiate (ordre d'achat)</label><label class="row"><input type="checkbox" data-k="prem">Premium</label></div>
+<div id="kres"></div></section>
 
 <section id="p-k" hidden><div class="panel">
 <label>Solde actuel (M)<input type="number" id="capv" step="0.1" inputmode="decimal"></label>
@@ -112,15 +117,15 @@ const subs=()=>TREE.filter(t=>S.cat.includes(t[0])).flatMap(t=>t[1]),armor=()=>S
 function chip(k,opts,fn){const c=$(`[data-c=${k}]`),draw=D[k]=()=>{const o=typeof opts==="function"?opts():opts;c.innerHTML=o.length?o.map(([v,l])=>`<button class="chip${S[k].includes(v)?" on":""}" data-v="${v}">${l}</button>`).join(""):'<span class="d">Choisis une catégorie ci-dessus.</span>'};c.onclick=e=>{let v=e.target.dataset.v;if(v==null)return;if(!isNaN(v))v=+v;S[k]=S[k].includes(v)?S[k].filter(x=>x!==v):[...S[k],v];save();fn&&fn();draw()};draw()}
 const sync=()=>{S.grp=S.grp.filter(g=>subs().includes(g));D.grp();$("#slotbox").hidden=!armor()};
 chip("cat",TREE.map(t=>[t[0],t[0]]),sync);chip("grp",()=>subs().map(g=>[g,g]),()=>$("#slotbox").hidden=!armor());chip("slot",Object.values(SL).map(x=>[x,x]));chip("tiers",[4,5,6,7,8].map(t=>[t,"T"+t]));chip("ench",[0,1,2,3,4].map(e=>[e,"."+e]));chip("qual",[1,2,3,4,5].map(q=>[q,QN[q]]));chip("cities",CITIES.map(c=>[c,c]));
-chip("cm",[["PLANKS","Planches"],["METALBAR","Barres"],["LEATHER","Cuir"],["CLOTH","Tissu"],["STONEBLOCK","Pierre"]]);chip("ctr",[3,4,5,6,7,8].map(t=>[t,"T"+t]));chip("dcities",CITIES.map(c=>[c,c]));chip("ccb",CITIES.map(c=>[c,c]));chip("ccs",[...CITIES,BM].map(c=>[c,dl(c)]));sync();
+chip("dcities",CITIES.map(c=>[c,c]));sync();
 $$("nav button").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.toggle("on",x===b));$$("section").forEach(s=>s.hidden=s.id!=="p-"+b.dataset.t)});
 const nice=id=>{const m=id.match(/^T(\d)_(.+?)(?:@(\d))?$/),i=m&&INFO[m[2]];return i?`T${m[1]}${m[3]?"."+m[3]:""} ${i.l}`:id};
 const card=(id,q,title,pf,tags,l1,l2,acts="",more="")=>{const t=+((id.match(/^T(\d)/)||[])[1]);return `<div class="c${more?" x":""}" style="--tc:${TC[t]||"var(--line)"}"><img class="ic" loading="lazy" alt="" src="https://render.albiononline.com/v1/item/${id}.png?size=64&quality=${q||1}" onerror="this.style.visibility='hidden'"><div class="nm">${title}</div><div class="pf ${pf<0?"neg":""}">${pf<0?"":"+"}${fk(pf)}</div><div class="tgs">${tags}</div><div class="d">${l1}</div><div class="d">${l2}</div>${acts?`<div class="act">${acts}</div>`:""}${more?`<div class="more" hidden>${more}</div>`:""}</div>`};
 const LAB=[...new Set(Object.values(INFO).map(i=>i.l))],JL=LAB.flatMap(l=>[4,5,6,7,8].map(t=>`T${t} ${l}`));
-function ac(el,list){const box=document.createElement("div");box.className="ac";box.hidden=true;el.parentNode.appendChild(box);
+function ac(el,list,onpick){const box=document.createElement("div");box.className="ac";box.hidden=true;el.parentNode.appendChild(box);
  const upd=()=>{const w=el.value.toLowerCase().split(/\s+/).filter(Boolean),r=w.length?list().filter(x=>w.every(y=>x.toLowerCase().includes(y))).slice(0,8):[];box.innerHTML=r.map(x=>`<button type="button" class="sg">${x}</button>`).join("");box.hidden=!r.length};
  el.addEventListener("input",upd);el.addEventListener("focus",upd);el.addEventListener("blur",()=>setTimeout(()=>box.hidden=true,250));
- box.onclick=e=>{const b=e.target.closest(".sg");if(!b)return;el.value=b.textContent;el.dispatchEvent(new Event("input"));box.hidden=true}}
+ box.onclick=e=>{const b=e.target.closest(".sg");if(!b)return;el.value=b.textContent;el.dispatchEvent(new Event("input"));box.hidden=true;onpick&&onpick(el.value)}}
 const tg=(t,c="")=>`<span class="tg ${c}">${t}</span>`;
 async function chunk(l,bm,qs){const r=await fetch(`${API}prices/${l.join(",")}.json?locations=${encodeURIComponent((bm?[...CITIES,BM]:CITIES).join(","))}&qualities=${qs}`);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
 async function pull(ids,bm,fn,qs=S.qual.join(",")||"1"){const out=[];let i=0,n=0;const w=async()=>{while(i<ids.length){const s=ids.slice(i,i+40);i+=40;out.push(...await chunk(s,bm,qs));n+=s.length;fn&&fn(n)}};await Promise.all([w(),w(),w()]);return out}
@@ -175,25 +180,28 @@ async function refresh(btn){if(busy)return;const res=compute(ROWS).slice(0,S.top
  busy=0;if(btn)btn.disabled=false}
 $("#rf").onclick=e=>refresh(e.currentTarget);
 setInterval(()=>{if(S.auto&&!$("#p-f").hidden)refresh()},12e4);
-/* CRAFT */
-const RES=[["WOOD","PLANKS","Planches"],["ORE","METALBAR","Barres"],["HIDE","LEATHER","Cuir"],["FIBER","CLOTH","Tissu"],["ROCK","STONEBLOCK","Pierre taillée"]],QR={3:2,4:2,5:3,6:4,7:5,8:5},REF={PLATE:"METALBAR",LEATHER:"LEATHER",CLOTH:"CLOTH"},QA={ARMOR:16,HEAD:8,SHOES:8};
-$("#cgo").onclick=async()=>{const b=$("#cgo"),st=$("#cst");b.disabled=true;const ids=[],A=S.ct==="a";
- if(A)for(let t=4;t<=8;t++){for(const m in REF)ids.push(`T${t}_${REF[m]}`);for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++)ids.push(`T${t}_${s}_${m}_SET${n}`)}
- else for(const [r,f] of RES)for(let t=2;t<=8;t++)ids.push(`T${t}_${r}`,`T${t}_${f}`);
- let rows;try{rows=await pull(ids,true,n=>{st.className="st";st.textContent=`Scan ${n} / ${ids.length}…`},"1")}catch(e){st.className="st err";st.textContent=FAIL;b.disabled=false;return}
- const by={};for(const r of rows)(by[r.item_id]??={})[r.city]=r;const rr=+S.rr/100,tax=S.prem?.04:.08,fr=r=>r.sell_price_min>0&&age(r.sell_price_min_date)<=MAXAGE;
- const lo=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];if(c!==BM&&(!S.ccb.length||S.ccb.includes(c))&&fr(r)&&(!b||r.sell_price_min<b.p))b={p:r.sell_price_min,c}}return b};
- const so=id=>{let b=null;for(const c in by[id]||{}){const r=by[id][c];if(S.ccs.length&&!S.ccs.includes(c))continue;let v=0;if(c===BM)v=r.buy_price_max>0&&age(r.buy_price_max_date)<=MAXAGE?r.buy_price_max*(1-tax):0;else v=fr(r)?(r.sell_price_min-1)*(1-tax-.025):0;if(v>0&&(!b||v>b.v))b={v,c}}return b};
- const out=[];
- const okc=(key,t)=>(!S.cm.length||S.cm.includes(key))&&(!S.ctr.length||S.ctr.includes(t));
- if(A){for(let t=4;t<=8;t++)for(const s in SL)for(const m in MT)for(let n=1;n<=3;n++){if(!okc(REF[m],t))continue;const id=`T${t}_${s}_${m}_SET${n}`,M=lo(`T${t}_${REF[m]}`),o=so(id);if(!M||!o)continue;const cost=QA[s]*M.p*(1-rr)+ +S.fee,pf=o.v-cost;out.push({k:"a",id,t:nice(id),tt:t,mt:m,M,o,q:QA[s],cost,pf,m:pf/cost,mn:RFR[REF[m]]})}}
- else for(const [r,f,n] of RES)for(let t=3;t<=8;t++){if(!okc(f,t))continue;const a=lo(`T${t}_${r}`),p=lo(`T${t-1}_${f}`),o=so(`T${t}_${f}`);if(!a||!p||!o)continue;const cost=(QR[t]*a.p+p.p)*(1-rr)+ +S.fee,pf=o.v-cost;out.push({k:"r",id:`T${t}_${f}`,t:`T${t} ${n}`,tt:t,r,M:a,o,q:QR[t],cost,pf,m:pf/cost,mn:RAW[r],rn:RFR[f],p})}
- out.sort((x,y)=>y.pf-x.pf);st.className="st";st.textContent=out.length?`${out.length} résultats (profit par objet fabriqué).`:"Pas assez de données récentes pour ces objets.";
- $("#cout").innerHTML=out.slice(0,40).map(o=>card(o.id,1,o.t,o.pf,tg((o.m*100).toFixed(0)+" % de marge","g")+tg("Vente "+dl(o.o.c))+tg("Détail ▾","w"),`Matières ${fmt(o.cost)} (${o.q}× ${o.mn} à ${o.M.c}${o.p?", 1× palier précédent à "+o.p.c:""})`,`Revente nette ${fmt(o.o.v)}`,"",steps(o))).join("");b.disabled=false};
-const RFR={METALBAR:"barres",LEATHER:"cuir",CLOTH:"tissu",PLANKS:"planches",STONEBLOCK:"pierres taillées"},RAW={WOOD:"bois",ORE:"minerai",HIDE:"peaux",FIBER:"fibres",ROCK:"pierres"},BON={WOOD:"Fort Sterling",ORE:"Thetford",HIDE:"Martlock",FIBER:"Lymhurst",ROCK:"Bridgewatch"},STN={PLATE:"Forge du guerrier",LEATHER:"Pavillon du chasseur",CLOTH:"Tour du mage"};
-const steps=o=>{const buy=`Acheter <b>${o.q}× ${o.mn}</b> T${o.tt} à <b>${o.M.c}</b> (~${fmt(o.M.p)} pièce, ${fmt(o.q*o.M.p)} au total).`,sell=`Vendre à <b>${dl(o.o.c)}</b> : environ ${fmt(o.o.v)} net par objet${o.o.c===BM?" (vente immédiate aux ordres d'achat)":" (ordre de vente)"}.`,end=`</ol><div class="d">Pour 10 objets : coût ${fmt(10*o.cost)}, profit ~${fmt(10*o.pf)} (retours déduits).</div>`,ret=`retour ${S.rr} % sur les matières, frais d'atelier ${fmt(+S.fee)}`;
- return o.k==="r"?`<ol><li>${buy}</li><li>Acheter <b>1× ${o.rn}</b> T${o.tt-1} à <b>${o.p.c}</b> (~${fmt(o.p.p)}).</li><li>Aller à <b>${BON[o.r]}</b> (ville bonus de ce raffinage) et ouvrir la station.</li><li>Raffiner : ${ret}.</li><li>${sell}</li>${end}`:`<ol><li>${buy}</li><li>Aller à l'établi : <b>${STN[o.mt]}</b>.</li><li>Fabriquer <b>${o.t}</b> : ${ret}.</li><li>${sell}</li>${end}`};
-$("#cout").onclick=e=>{const c=e.target.closest(".c.x");if(c){const m=c.querySelector(".more");m.hidden=!m.hidden}};
+/* CRAFT MANUEL */
+const RAWL=[["WOOD","Bois"],["ORE","Minerai"],["HIDE","Peaux"],["FIBER","Fibres"],["ROCK","Pierres"]],REFL=[["PLANKS","Planches"],["METALBAR","Barres"],["LEATHER","Cuir"],["CLOTH","Tissu"],["STONEBLOCK","Pierre taillée"]],IDM={},INGL=[],OUTL=[];
+for(const L of[RAWL,REFL])for(const [c,n] of L)for(let t=2;t<=8;t++)for(let e=0;e<=4;e++){const lb=`T${t}${e?"."+e:""} ${n}`;IDM[lb]=`T${t}_${c}${e?`_LEVEL${e}@${e}`:""}`;INGL.push(lb)}
+for(const [b,i] of Object.entries(INFO))for(let t=4;t<=8;t++)for(let e=0;e<=4;e++){const lb=`T${t}${e?"."+e:""} ${i.l}`;IDM[lb]=`T${t}_${b}${e?"@"+e:""}`;OUTL.push(lb)}
+OUTL.push(...INGL);
+const K=Object.assign({o:null,sp:0,pq:1,n:1,ings:[],bonus:0,focus:0,ty:"r",fee:0,inst:0},ld("flcr",{})),ksave=()=>sv("flcr",K);
+const ico=id=>id?`<img class="ki" alt="" loading="lazy" src="https://render.albiononline.com/v1/item/${id}.png?size=48" onerror="this.style.visibility='hidden'">`:"";
+const rrr=()=>1-1/(1+(18+(K.bonus?(K.ty==="r"?40:15):0)+(K.focus?59:0))/100);
+function kres(){const rr=rrr(),raw=K.ings.reduce((a,g)=>a+g.q*g.p,0),mat=K.ings.reduce((a,g)=>a+g.q*g.p*(g.nr?1:1-rr),0),tot=mat+(+K.fee||0),pq=K.pq||1,per=tot/pq,tax=S.prem?.04:.08,f=K.inst?tax:tax+.025,net=K.sp*(1-f),pf=net-per,miss=K.ings.filter(g=>!g.p).length;
+ $("#kres").innerHTML=!K.ings.length?"":`<div class="box"><b>Résultat</b> (retour de ${(rr*100).toFixed(1)} %)<br>Matières brutes : ${fmt(raw)}<br>Après retours : ${fmt(mat)}, frais d'atelier ${fmt(+K.fee||0)}<br>Coût par fabrication : <b>${fmt(tot)}</b>${pq>1?` (${fmt(per)} par objet)`:""}<br>${K.sp?`Prix de vente net : ${fmt(net)} (taxe ${(f*100).toFixed(1)} %)<br>Profit par objet : <b class="${pf<0?"neg":""}">${pf<0?"":"+"}${fmt(pf)}</b> (${per?(pf/per*100).toFixed(1):0} % de marge)<br>Prix de vente minimal pour ne pas perdre : ${fmt(per/(1-f))}<br>Pour ${K.n} fabrication(s) : coût ${fmt(tot*K.n)}, profit ${fmt(pf*pq*K.n)}`:"Saisis un prix de vente pour comparer."}${miss?`<br><span class="d">${miss} ingrédient(s) sans prix.</span>`:""}</div>`}
+function kdraw(){$("#kon").innerHTML=K.o?`${ico(K.o.id)}<b>${K.o.n}</b>`:'<span class="d">Aucun objet choisi : cherche-le ci-dessus.</span>';
+ $("#kig").innerHTML=K.ings.length?K.ings.map((g,i)=>`<div class="kr" data-i="${i}"><div class="kn">${ico(g.id)}<b>${g.n}</b></div><label>Quantité<input type="number" class="kq" value="${g.q}" inputmode="numeric"></label><label>Prix unité<input type="number" class="kp" value="${g.p||""}" inputmode="numeric"></label><label class="row"><input type="checkbox" class="kx" ${g.nr?"checked":""}>Sans retour (ex. artefact)</label><div class="act">${g.id?'<button class="sm" data-a="v">Prix par ville</button>':""}<button class="sm" data-a="x">Retirer</button></div><div class="kv"></div></div>`).join(""):'<span class="d">Ajoute les ingrédients avec la recherche ci-dessus.</span>';kres()}
+async function kprices(id,box,bm,asc,set){box.innerHTML='<span class="d">Chargement…</span>';try{const rows=await chunk([id],bm,"1"),L=[];for(const r of rows){const b=r.city===BM,p=b?r.buy_price_max:r.sell_price_min,d=b?r.buy_price_max_date:r.sell_price_min_date;if(p>0)L.push({c:r.city,p,a:age(d)})}
+ L.sort((x,y)=>asc?x.p-y.p:y.p-x.p);box.innerHTML=L.length?`<div class="chips">${L.map(x=>`<button class="chip" data-p="${x.p}">${dl(x.c)} ${fmt(x.p)} · ${ago(x.a)}</button>`).join("")}</div>`:'<span class="d">Aucun prix connu pour cet objet.</span>';box.onclick=e=>{const v=e.target.closest("[data-p]");if(v)set(+v.dataset.p)}}catch{box.innerHTML='<span class="d">'+FAIL+"</span>"}}
+const addIng=v=>{v=v.trim();if(!v)return;K.ings.push({n:v,id:IDM[v]||null,q:1,p:0});ksave();$("#ki").value="";kdraw()},setOut=v=>{v=v.trim();if(!v)return;K.o={n:v,id:IDM[v]||null};ksave();$("#ko").value="";kdraw()};
+ac($("#ki"),()=>INGL,addIng);ac($("#ko"),()=>OUTL,setOut);
+$("#ki").onkeydown=e=>{if(e.key==="Enter")addIng($("#ki").value)};$("#ko").onkeydown=e=>{if(e.key==="Enter")setOut($("#ko").value)};$("#kif").onclick=()=>addIng($("#ki").value);
+$("#kig").oninput=e=>{const r=e.target.closest(".kr");if(!r)return;const g=K.ings[+r.dataset.i],c=e.target.classList;if(c.contains("kq"))g.q=+e.target.value;else if(c.contains("kp"))g.p=+e.target.value;else if(c.contains("kx"))g.nr=+e.target.checked;ksave();kres()};
+$("#kig").onclick=e=>{const r=e.target.closest(".kr");if(!r)return;const i=+r.dataset.i,a=e.target.dataset.a;if(a==="x"){K.ings.splice(i,1);ksave();kdraw()}else if(a==="v")kprices(K.ings[i].id,r.querySelector(".kv"),false,true,v=>{K.ings[i].p=v;r.querySelector(".kp").value=v;ksave();kres()})};
+$("#kov").onclick=()=>{if(K.o&&K.o.id)kprices(K.o.id,$("#kovl"),true,false,v=>{K.sp=v;$('[data-kk="sp"]').value=v;ksave();kres()});else $("#kovl").innerHTML='<span class="d">Choisis d\'abord un objet de la liste.</span>'};
+$$("[data-kk]").forEach(el=>{const k=el.dataset.kk;el.type==="checkbox"?el.checked=!!K[k]:el.value=K[k]||"";el.oninput=()=>{K[k]=el.type==="checkbox"?+el.checked:el.type==="number"?+el.value:el.value;ksave();kres()}});
+$$('[data-k="prem"]').forEach(e=>e.addEventListener("input",kres));kdraw();
 /* CAPITAL */
 let CAP=ld("flc",[]);
 function capDraw(){const g=S.goal*1e6,L=CAP.at(-1),v=L?L.v:0;let h=`<div class="bar"><i style="width:${Math.min(100,v/g*100)}%"></i></div><p class="d">${fmt(v)} / ${fmt(g)} (${(v/g*100).toFixed(1)} %)</p>`;
